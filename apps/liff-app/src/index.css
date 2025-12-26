@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply text-slate-900 font-sans antialiased pb-20;
+  }
+}
+
+@layer components {
+  .glass-header {
+    @apply fixed top-0 left-0 right-0 h-14 bg-white/80 backdrop-blur-md flex items-center justify-center z-50 border-b border-brand-100;
+  }
+
+  .glass-card {
+    @apply bg-white border border-brand-100 shadow-sm rounded-xl p-4;
+  }
+
+  .btn-primary {
+    @apply bg-brand-600 active:bg-brand-700 text-white font-bold py-3 px-4 rounded-xl w-full text-center shadow-lg shadow-brand-200;
+  }
+
+  .nav-bar {
+    @apply fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-slate-200 flex justify-around items-center z-50 pb-safe;
+  }
+}

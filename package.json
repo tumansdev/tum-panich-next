@@ -1,0 +1,14 @@
+{
+  "name": "tum-panich-next-monorepo",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "backend"
+  ],
+  "scripts": {
+    "dev:pos": "npm run dev --workspace=@tum-panich/web-pos",
+    "dev:liff": "npm run dev --workspace=@tum-panich/liff-app",
+    "dev:backend": "npm run dev --workspace=@tum-panich/backend",
+    "build": "npm run build --workspaces"
+  }
+}
