@@ -1,77 +1,226 @@
-import React from 'react';
-import { Home, ShoppingBag, User, Utensils } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { initializeLiff, getProfile, isLoggedIn } from './lib/liff';
+import { LiffProfile, Product } from './types';
+import { BottomNav } from './components/BottomNav';
+import { HomePage } from './pages/HomePage';
+import { MenuPage } from './pages/MenuPage';
+import { CartPage } from './pages/CartPage';
+import { CheckoutPage } from './pages/CheckoutPage';
+import { OrderStatusPage } from './pages/OrderStatusPage';
+import { noodleOptions } from './data/menu';
+import { useCartStore } from './stores/cartStore';
+import { X } from 'lucide-react';
+
+type Tab = 'home' | 'menu' | 'cart' | 'profile';
+type View = 'main' | 'checkout' | 'order-status';
 
 function App() {
+  const [activeTab, setActiveTab] = useState<Tab>('home');
+  const [view, setView] = useState<View>('main');
+  const [orderId, setOrderId] = useState<string>('');
+  const [liffReady, setLiffReady] = useState(false);
+  const [profile, setProfile] = useState<LiffProfile | null>(null);
+  
+  // Product option modal
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedNoodle, setSelectedNoodle] = useState<string>('');
+  const addItem = useCartStore((state) => state.addItem);
+
+  // Initialize LIFF
+  useEffect(() => {
+    async function init() {
+      const success = await initializeLiff();
+      setLiffReady(true);
+      
+      if (success && isLoggedIn()) {
+        const userProfile = await getProfile();
+        setProfile(userProfile);
+      }
+    }
+    init();
+  }, []);
+
+  const handleTabChange = (tab: Tab) => {
+    setActiveTab(tab);
+    setView('main');
+  };
+
+  const handleNavigate = (tab: 'menu' | 'cart') => {
+    setActiveTab(tab);
+  };
+
+  const handleCheckout = () => {
+    setView('checkout');
+  };
+
+  const handleOrderComplete = (newOrderId: string) => {
+    setOrderId(newOrderId);
+    setView('order-status');
+  };
+
+  const handleBackToHome = () => {
+    setView('main');
+    setActiveTab('home');
+  };
+
+  const handleSelectProduct = (product: Product) => {
+    setSelectedProduct(product);
+    setSelectedNoodle(noodleOptions.choices[0]);
+  };
+
+  const handleAddWithOptions = () => {
+    if (selectedProduct) {
+      addItem(selectedProduct, 1, { 'noodle-type': selectedNoodle });
+      setSelectedProduct(null);
+    }
+  };
+
+  // Loading screen
+  if (!liffReady) {
+    return (
+      <div className="min-h-screen bg-amber-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg animate-pulse">
+            <span className="text-2xl">🍜</span>
+          </div>
+          <p className="text-brand-700 font-medium">กำลังโหลด...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-amber-50">
       {/* Header */}
-      <header className="glass-header">
-        <h1 className="text-lg font-bold text-brand-700">Tum Panich</h1>
+      <header className="fixed top-0 left-0 right-0 h-14 bg-white/90 backdrop-blur-md flex items-center justify-center z-50 border-b border-brand-100 shadow-sm">
+        <h1 className="text-lg font-bold text-brand-700 flex items-center gap-2">
+          <span className="text-xl">🍜</span>
+          ตั้มพานิช
+        </h1>
       </header>
 
-      {/* spacer for header */}
-      <div className="h-14"></div>
+      {/* Spacer for fixed header */}
+      <div className="h-14" />
 
       {/* Main Content */}
-      <main className="p-4 space-y-4">
-        {/* Banner */}
-        <div className="w-full h-40 bg-brand-600 rounded-2xl flex items-center justify-center text-white font-bold shadow-lg overflow-hidden relative">
-          <div className="absolute inset-0 bg-gradient-to-tr from-brand-900 to-transparent opacity-50"></div>
-          <span className="relative z-10 text-xl">Review Queue Status</span>
-        </div>
+      <main className="p-4 pb-24">
+        {view === 'main' && (
+          <>
+            {activeTab === 'home' && (
+              <HomePage 
+                onNavigate={handleNavigate}
+                onSelectProduct={handleSelectProduct}
+              />
+            )}
+            {activeTab === 'menu' && (
+              <MenuPage onSelectProduct={handleSelectProduct} />
+            )}
+            {activeTab === 'cart' && (
+              <CartPage onCheckout={handleCheckout} />
+            )}
+            {activeTab === 'profile' && (
+              <div className="space-y-4">
+                {profile ? (
+                  <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100 flex items-center gap-4">
+                    <img
+                      src={profile.pictureUrl || '/default-avatar.png'}
+                      alt={profile.displayName}
+                      className="w-16 h-16 rounded-full"
+                    />
+                    <div>
+                      <h3 className="font-bold text-slate-800">{profile.displayName}</h3>
+                      <p className="text-sm text-slate-500">{profile.statusMessage}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100 text-center">
+                    <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <span className="text-3xl">👤</span>
+                    </div>
+                    <h3 className="font-bold text-slate-700 mb-1">ยังไม่ได้เข้าสู่ระบบ</h3>
+                    <p className="text-slate-500 text-sm mb-4">เข้าสู่ระบบเพื่อดูประวัติการสั่งซื้อ</p>
+                  </div>
+                )}
+                
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                  <h4 className="font-bold text-amber-800 mb-2">📍 ร้าน ตั้มพานิช</h4>
+                  <div className="text-sm text-amber-700 space-y-1">
+                    <p>🕐 เปิดบริการ: 07:00 - 14:00 น.</p>
+                    <p>📞 โทร: 0xx-xxx-xxxx</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
+        )}
 
-        {/* Menu Grid */}
-        <div className="grid grid-cols-2 gap-4">
-          <MenuCard title="Food" icon={<Utensils size={24} />} color="bg-orange-100 text-orange-600" />
-          <MenuCard title="Drinks" icon={<ShoppingBag size={24} />} color="bg-blue-100 text-blue-600" />
-          {/* Mock items */}
-        </div>
+        {view === 'checkout' && (
+          <CheckoutPage
+            onBack={() => setView('main')}
+            onOrderComplete={handleOrderComplete}
+          />
+        )}
 
-        {/* Recent Order */}
-        <div className="glass-card">
-          <h2 className="font-bold text-slate-800 mb-2">Current Order</h2>
-          <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 mb-3">
-             <div className="flex justify-between text-sm">
-                <span>Pad Thai</span>
-                <span className="font-semibold">Top Priority</span>
-             </div>
-             <div className="text-xs text-slate-400 mt-1">Cooking...</div>
-          </div>
-          <button className="btn-primary">View Details</button>
-        </div>
+        {view === 'order-status' && (
+          <OrderStatusPage
+            orderId={orderId}
+            onBack={handleBackToHome}
+          />
+        )}
       </main>
 
-      {/* spacer for navbar */}
-      <div className="h-20"></div>
+      {/* Bottom Navigation */}
+      {view === 'main' && (
+        <BottomNav activeTab={activeTab} onTabChange={handleTabChange} />
+      )}
 
-      {/* Bottom Nav */}
-      <nav className="nav-bar">
-        <NavItem icon={<Home size={24} />} label="Menu" active />
-        <NavItem icon={<ShoppingBag size={24} />} label="Cart" />
-        <NavItem icon={<User size={24} />} label="Profile" />
-      </nav>
+      {/* Noodle Options Modal */}
+      {selectedProduct && (
+        <div className="fixed inset-0 bg-black/50 z-[100] flex items-end justify-center">
+          <div className="bg-white rounded-t-3xl w-full max-w-lg p-6 space-y-4 animate-slide-up">
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="font-bold text-lg text-slate-800">{selectedProduct.name}</h3>
+                <p className="text-brand-700 font-bold">฿{selectedProduct.price}</p>
+              </div>
+              <button
+                onClick={() => setSelectedProduct(null)}
+                className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center"
+              >
+                <X size={18} className="text-slate-600" />
+              </button>
+            </div>
+
+            <div>
+              <h4 className="font-medium text-slate-700 mb-2">🍜 เลือกเส้น</h4>
+              <div className="grid grid-cols-2 gap-2">
+                {noodleOptions.choices.map((noodle) => (
+                  <button
+                    key={noodle}
+                    onClick={() => setSelectedNoodle(noodle)}
+                    className={`p-3 rounded-xl border-2 text-center transition-all ${
+                      selectedNoodle === noodle
+                        ? 'border-brand-600 bg-brand-50 text-brand-700'
+                        : 'border-slate-200 text-slate-600'
+                    }`}
+                  >
+                    {noodle}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button
+              onClick={handleAddWithOptions}
+              className="w-full bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white font-bold py-4 rounded-xl shadow-lg shadow-brand-200"
+            >
+              เพิ่มลงตะกร้า
+            </button>
+          </div>
+        </div>
+      )}
     </div>
-  )
+  );
 }
 
-function MenuCard({ title, icon, color }: { title: string, icon: React.ReactNode, color: string }) {
-  return (
-    <div className="glass-card flex flex-col items-center justify-center py-6 gap-2 active:scale-95 transition-transform cursor-pointer">
-      <div className={`p-3 rounded-full ${color}`}>
-        {icon}
-      </div>
-      <span className="font-medium text-slate-700">{title}</span>
-    </div>
-  )
-}
-
-function NavItem({ icon, label, active = false }: { icon: React.ReactNode, label: string, active?: boolean }) {
-  return (
-    <button className={`flex flex-col items-center justify-center w-full h-full ${active ? 'text-brand-600' : 'text-slate-400'}`}>
-      {icon}
-      <span className="text-[10px] mt-1 font-medium">{label}</span>
-    </button>
-  )
-}
-
-export default App
+export default App;

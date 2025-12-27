@@ -1,27 +1,32 @@
 # 🔥 Active Task
 
 ## Current Focus
-Fix LIFF App Build Error - pb-safe CSS issue
+LIFF Food Ordering System - Complete!
 
 ## In Progress
-- [x] Fix pb-safe class not found in Tailwind
+- [ ] Deploy to VPS
 
 ## Just Completed
-- [x] Fixed `apps/liff-app/src/index.css` - replaced `pb-safe` with CSS env(safe-area-inset-bottom)
-- [x] Fixed Dockerfile casing warning in both `liff-app` and `web-pos`
 - [x] Initialize Monorepo
-- [x] Docker Infrastructure (Compose + Nginx + Certbot)
-- [x] Frontend Web POS (Vite + Tailwind + Glassmorphism)
-- [x] Frontend LIFF App (Mobile Layout)
+- [x] Docker Infrastructure
+- [x] Frontend Web POS
+- [x] Frontend LIFF App (Complete rebuild!)
+  - Types, Menu Data, Cart Store
+  - LIFF SDK integration
+  - 5 Pages: Home, Menu, Cart, Checkout, OrderStatus
+  - 5 Components: ProductCard, BottomNav, CategoryTabs, CartItem, OrderTracker
+  - PromptPay payment with slip upload
+  - Warm food-restaurant design
 - [x] Backend API (Express + Socket.io)
 
 ## Next Steps
-- Commit and push changes to GitHub
-- Run `./deploy.sh` on VPS again
-- Connect Domain name
+- Commit & Push to GitHub
+- Run `./deploy.sh` on VPS
+- Add LIFF_ID in LINE Developers Console
+- Add PromptPay QR code image
 
 ## Blockers / Issues
-- Git index.lock exists (need to close VS Code or other git processes)
+- (none)
 
 ---
 *Last updated: 2025-12-27*
