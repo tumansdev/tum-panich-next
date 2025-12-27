@@ -7,12 +7,12 @@ interface CheckoutPageProps {
   onOrderComplete: (orderId: string) => void;
 }
 
-// ข้อมูลบัญชีร้าน - แก้ไขตรงนี้
+// ข้อมูลบัญชีร้าน
 const BANK_INFO = {
-  bankName: 'กสิกรไทย',
-  accountNumber: 'xxx-x-xxxxx-x',
-  accountName: 'ร้าน ตั้มพานิช',
-  qrCodeImage: '/images/promptpay-qr.jpg', // ใส่รูป QR ของร้าน
+  bankName: 'ธนาคารกสิกรไทย สาขาอ่างทอง',
+  accountNumber: '205-1-21824-0',
+  accountName: 'คุณ ธัญทิพย์ วิชยเจริญพงษ์',
+  qrCodeImage: '/images/qr-payment.png',
 };
 
 export function CheckoutPage({ onBack, onOrderComplete }: CheckoutPageProps) {

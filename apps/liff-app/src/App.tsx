@@ -94,7 +94,7 @@ function App() {
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 h-14 bg-white/90 backdrop-blur-md flex items-center justify-center z-50 border-b border-brand-100 shadow-sm">
         <h1 className="text-lg font-bold text-brand-700 flex items-center gap-2">
-          <span className="text-xl">🍜</span>
+          <img src="/images/logo.png" alt="ตั้มพานิช" className="h-8 w-8 object-contain" />
           ตั้มพานิช
         </h1>
       </header>
