@@ -2,14 +2,20 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { CartItem, Product } from '../types';
 
+// สร้าง unique ID
+function generateId(): string {
+  return Date.now().toString(36) + Math.random().toString(36).substr(2);
+}
+
 interface CartState {
   items: CartItem[];
-  addItem: (product: Product, quantity?: number, options?: Record<string, string>, note?: string) => void;
-  removeItem: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  addItem: (product: Product, options?: Record<string, string>) => void;
+  removeItem: (itemId: string) => void;
+  updateItemNote: (itemId: string, note: string) => void;
   clearCart: () => void;
   getTotal: () => number;
   getItemCount: () => number;
+  getGroupedItems: () => { product: Product; items: CartItem[] }[];
 }
 
 export const useCartStore = create<CartState>()(
@@ -17,68 +23,69 @@ export const useCartStore = create<CartState>()(
     (set, get) => ({
       items: [],
 
-      addItem: (product, quantity = 1, options = {}, note = '') => {
-        set((state) => {
-          const existingIndex = state.items.findIndex(
-            (item) => 
-              item.product.id === product.id && 
-              JSON.stringify(item.selectedOptions) === JSON.stringify(options)
-          );
-
-          if (existingIndex > -1) {
-            // อัพเดท quantity ถ้ามีสินค้าเดิมอยู่แล้ว
-            const newItems = [...state.items];
-            newItems[existingIndex].quantity += quantity;
-            return { items: newItems };
-          }
-
-          // เพิ่มสินค้าใหม่
-          return {
-            items: [
-              ...state.items,
-              { product, quantity, selectedOptions: options, note },
-            ],
-          };
-        });
-      },
-
-      removeItem: (productId) => {
+      // เพิ่มสินค้า 1 ชิ้น = 1 CartItem (ไม่รวม quantity)
+      addItem: (product, options = {}) => {
+        const newItem: CartItem = {
+          id: generateId(),
+          product,
+          note: '',
+          selectedOptions: options,
+        };
+        
         set((state) => ({
-          items: state.items.filter((item) => item.product.id !== productId),
+          items: [...state.items, newItem],
         }));
       },
 
-      updateQuantity: (productId, quantity) => {
-        set((state) => {
-          if (quantity <= 0) {
-            return {
-              items: state.items.filter((item) => item.product.id !== productId),
-            };
-          }
+      // ลบรายการตาม itemId
+      removeItem: (itemId) => {
+        set((state) => ({
+          items: state.items.filter((item) => item.id !== itemId),
+        }));
+      },
 
-          return {
-            items: state.items.map((item) =>
-              item.product.id === productId ? { ...item, quantity } : item
-            ),
-          };
-        });
+      // อัพเดท note ของรายการนั้นๆ
+      updateItemNote: (itemId, note) => {
+        set((state) => ({
+          items: state.items.map((item) =>
+            item.id === itemId ? { ...item, note } : item
+          ),
+        }));
       },
 
       clearCart: () => set({ items: [] }),
 
       getTotal: () => {
-        return get().items.reduce(
-          (sum, item) => sum + item.product.price * item.quantity,
-          0
-        );
+        return get().items.reduce((sum, item) => sum + item.product.price, 0);
       },
 
       getItemCount: () => {
-        return get().items.reduce((sum, item) => sum + item.quantity, 0);
+        return get().items.length;
+      },
+
+      // จัดกลุ่มสินค้าตาม product.id สำหรับแสดงผล
+      getGroupedItems: () => {
+        const items = get().items;
+        const grouped = new Map<string, { product: Product; items: CartItem[] }>();
+
+        items.forEach((item) => {
+          const key = item.product.id + JSON.stringify(item.selectedOptions || {});
+          
+          if (grouped.has(key)) {
+            grouped.get(key)!.items.push(item);
+          } else {
+            grouped.set(key, {
+              product: item.product,
+              items: [item],
+            });
+          }
+        });
+
+        return Array.from(grouped.values());
       },
     }),
     {
-      name: 'tum-panich-cart',
+      name: 'tum-panich-cart-v2',
     }
   )
 );

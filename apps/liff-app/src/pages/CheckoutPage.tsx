@@ -1,6 +1,8 @@
 import { useState, useRef } from 'react';
-import { ArrowLeft, MapPin, Phone, User, Upload, CheckCircle, Copy } from 'lucide-react';
+import { ArrowLeft, MapPin, Phone, User, Upload, CheckCircle, Copy, Store, Truck, Package } from 'lucide-react';
 import { useCartStore } from '../stores/cartStore';
+import { DistanceChecker } from '../components/DistanceChecker';
+import { DeliveryType } from '../types';
 
 interface CheckoutPageProps {
   onBack: () => void;
@@ -15,19 +17,48 @@ const BANK_INFO = {
   qrCodeImage: '/images/qr-payment.png',
 };
 
+const DELIVERY_OPTIONS = [
+  {
+    id: 'pickup' as DeliveryType,
+    icon: Store,
+    title: 'รับที่ร้าน',
+    description: 'เดินทางมารับเอง',
+    price: 'ฟรี',
+    color: 'green',
+  },
+  {
+    id: 'free-delivery' as DeliveryType,
+    icon: Truck,
+    title: 'ส่งฟรีโดยร้าน',
+    description: 'ภายในรัศมี 2 กม.',
+    price: 'ฟรี',
+    color: 'blue',
+  },
+  {
+    id: 'easy-delivery' as DeliveryType,
+    icon: Package,
+    title: 'Easy Delivery',
+    description: 'จ่ายค่าส่งกับไรเดอร์',
+    price: 'เกิน 2 กม.',
+    color: 'amber',
+  },
+];
+
 export function CheckoutPage({ onBack, onOrderComplete }: CheckoutPageProps) {
-  const { items, getTotal, clearCart } = useCartStore();
+  const { items, getTotal, clearCart, getGroupedItems } = useCartStore();
   const total = getTotal();
+  const groupedItems = getGroupedItems();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState({
     name: '',
     phone: '',
-    deliveryType: 'pickup' as 'pickup' | 'delivery',
+    deliveryType: 'pickup' as DeliveryType,
     address: '',
-    note: '',
+    landmark: '',
   });
 
+  const [distanceKm, setDistanceKm] = useState<number | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'promptpay'>('promptpay');
   const [slipImage, setSlipImage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -50,9 +81,24 @@ export function CheckoutPage({ onBack, onOrderComplete }: CheckoutPageProps) {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleDistanceChecked = (result: { distance: number; isFreeDelivery: boolean }) => {
+    setDistanceKm(result.distance);
+    // Auto-select delivery type based on distance
+    if (result.isFreeDelivery) {
+      setForm({ ...form, deliveryType: 'free-delivery' });
+    } else {
+      setForm({ ...form, deliveryType: 'easy-delivery' });
+    }
+  };
+
   const handleSubmit = async () => {
     if (!form.name || !form.phone) {
       alert('กรุณากรอกชื่อและเบอร์โทร');
+      return;
+    }
+
+    if (form.deliveryType !== 'pickup' && !form.address) {
+      alert('กรุณากรอกที่อยู่จัดส่ง');
       return;
     }
 
@@ -64,7 +110,6 @@ export function CheckoutPage({ onBack, onOrderComplete }: CheckoutPageProps) {
     setIsSubmitting(true);
 
     // TODO: ส่งข้อมูลไป API
-    // สำหรับตอนนี้ใช้ mock
     await new Promise((resolve) => setTimeout(resolve, 1500));
 
     const orderId = `TP${Date.now()}`;
@@ -72,8 +117,10 @@ export function CheckoutPage({ onBack, onOrderComplete }: CheckoutPageProps) {
     onOrderComplete(orderId);
   };
 
+  const needsAddress = form.deliveryType !== 'pickup';
+
   return (
-    <div className="space-y-4 pb-32">
+    <div className="space-y-4 pb-36">
       {/* Header */}
       <div className="flex items-center gap-3">
         <button
@@ -93,7 +140,7 @@ export function CheckoutPage({ onBack, onOrderComplete }: CheckoutPageProps) {
           <User size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="ชื่อ *"
+            placeholder="ชื่อ-นามสกุล *"
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
             className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
@@ -112,45 +159,79 @@ export function CheckoutPage({ onBack, onOrderComplete }: CheckoutPageProps) {
         </div>
       </div>
 
-      {/* Delivery Type */}
+      {/* Delivery Type - 3 Options */}
       <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100 space-y-3">
         <h3 className="font-bold text-slate-800">วิธีรับอาหาร</h3>
 
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            onClick={() => setForm({ ...form, deliveryType: 'pickup' })}
-            className={`p-3 rounded-xl border-2 text-center transition-all ${
-              form.deliveryType === 'pickup'
-                ? 'border-brand-600 bg-brand-50 text-brand-700'
-                : 'border-slate-200 text-slate-600'
-            }`}
-          >
-            <span className="text-xl">🏪</span>
-            <p className="font-medium text-sm mt-1">รับเอง</p>
-          </button>
-          
-          <button
-            onClick={() => setForm({ ...form, deliveryType: 'delivery' })}
-            className={`p-3 rounded-xl border-2 text-center transition-all ${
-              form.deliveryType === 'delivery'
-                ? 'border-brand-600 bg-brand-50 text-brand-700'
-                : 'border-slate-200 text-slate-600'
-            }`}
-          >
-            <span className="text-xl">🛵</span>
-            <p className="font-medium text-sm mt-1">จัดส่ง</p>
-          </button>
+        <div className="space-y-2">
+          {DELIVERY_OPTIONS.map((option) => {
+            const Icon = option.icon;
+            const isSelected = form.deliveryType === option.id;
+            const colorClass = {
+              green: isSelected ? 'border-green-500 bg-green-50' : 'border-slate-200',
+              blue: isSelected ? 'border-blue-500 bg-blue-50' : 'border-slate-200',
+              amber: isSelected ? 'border-amber-500 bg-amber-50' : 'border-slate-200',
+            }[option.color];
+
+            return (
+              <button
+                key={option.id}
+                onClick={() => setForm({ ...form, deliveryType: option.id })}
+                className={`w-full p-3 rounded-xl border-2 text-left transition-all flex items-center gap-3 ${colorClass}`}
+              >
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                  option.color === 'green' ? 'bg-green-100' :
+                  option.color === 'blue' ? 'bg-blue-100' : 'bg-amber-100'
+                }`}>
+                  <Icon size={20} className={
+                    option.color === 'green' ? 'text-green-600' :
+                    option.color === 'blue' ? 'text-blue-600' : 'text-amber-600'
+                  } />
+                </div>
+                <div className="flex-1">
+                  <p className={`font-medium ${isSelected ? 'text-slate-800' : 'text-slate-600'}`}>
+                    {option.title}
+                  </p>
+                  <p className="text-xs text-slate-500">{option.description}</p>
+                </div>
+                <span className={`text-xs font-bold px-2 py-1 rounded-full ${
+                  option.color === 'green' ? 'bg-green-100 text-green-700' :
+                  option.color === 'blue' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'
+                }`}>
+                  {option.price}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
-        {form.deliveryType === 'delivery' && (
-          <div className="relative">
-            <MapPin size={18} className="absolute left-3 top-3 text-slate-400" />
-            <textarea
-              placeholder="ที่อยู่จัดส่ง *"
-              value={form.address}
-              onChange={(e) => setForm({ ...form, address: e.target.value })}
-              rows={3}
-              className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
+        {/* Distance Checker - for delivery */}
+        {needsAddress && (
+          <div className="pt-2 border-t border-slate-100">
+            <DistanceChecker onDistanceChecked={handleDistanceChecked} />
+          </div>
+        )}
+
+        {/* Address & Landmark - for delivery */}
+        {needsAddress && (
+          <div className="space-y-3 pt-2">
+            <div className="relative">
+              <MapPin size={18} className="absolute left-3 top-3 text-slate-400" />
+              <textarea
+                placeholder="ที่อยู่จัดส่ง *"
+                value={form.address}
+                onChange={(e) => setForm({ ...form, address: e.target.value })}
+                rows={3}
+                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
+              />
+            </div>
+            
+            <input
+              type="text"
+              placeholder="จุดสังเกต เช่น ติดกับเซเว่น, ตรงข้าม 7-11"
+              value={form.landmark}
+              onChange={(e) => setForm({ ...form, landmark: e.target.value })}
+              className="w-full px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
           </div>
         )}
@@ -259,33 +340,39 @@ export function CheckoutPage({ onBack, onOrderComplete }: CheckoutPageProps) {
         <h3 className="font-bold text-slate-800 mb-3">สรุปคำสั่งซื้อ</h3>
         
         <div className="space-y-2 text-sm">
-          {items.map((item) => (
-            <div key={item.product.id} className="flex justify-between">
-              <span className="text-slate-600">
-                {item.product.name} x{item.quantity}
-              </span>
-              <span className="font-medium">฿{item.product.price * item.quantity}</span>
+          {groupedItems.map((group) => (
+            <div key={group.product.id}>
+              <div className="flex justify-between">
+                <span className="text-slate-600">
+                  {group.product.name} x{group.items.length}
+                </span>
+                <span className="font-medium">฿{group.product.price * group.items.length}</span>
+              </div>
+              {/* แสดง notes ถ้ามี */}
+              {group.items.some(item => item.note) && (
+                <div className="ml-4 text-xs text-amber-600">
+                  {group.items.map((item, i) => 
+                    item.note && (
+                      <p key={item.id}>• จานที่ {i + 1}: {item.note}</p>
+                    )
+                  )}
+                </div>
+              )}
             </div>
           ))}
         </div>
 
         <div className="border-t border-slate-200 mt-3 pt-3">
           <div className="flex justify-between items-center">
-            <span className="font-bold text-slate-800">รวมทั้งหมด</span>
+            <span className="font-bold text-slate-800">รวมค่าอาหาร</span>
             <span className="text-2xl font-bold text-brand-700">฿{total}</span>
           </div>
+          {form.deliveryType === 'easy-delivery' && (
+            <p className="text-xs text-amber-600 mt-1">
+              * ค่าส่ง Easy Delivery ชำระกับไรเดอร์ปลายทาง
+            </p>
+          )}
         </div>
-      </div>
-
-      {/* Note */}
-      <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
-        <textarea
-          placeholder="หมายเหตุเพิ่มเติม (ถ้ามี)"
-          value={form.note}
-          onChange={(e) => setForm({ ...form, note: e.target.value })}
-          rows={2}
-          className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
-        />
       </div>
 
       {/* Submit Button */}
@@ -293,7 +380,7 @@ export function CheckoutPage({ onBack, onOrderComplete }: CheckoutPageProps) {
         <button
           onClick={handleSubmit}
           disabled={isSubmitting}
-          className="w-full bg-brand-600 hover:bg-brand-700 active:bg-brand-800 disabled:opacity-70 text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-brand-200 transition-colors flex items-center justify-center gap-2"
+          className="w-full bg-gradient-to-r from-brand-600 to-brand-700 hover:from-brand-700 hover:to-brand-800 disabled:opacity-70 text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-brand-200 transition-all flex items-center justify-center gap-2"
         >
           {isSubmitting ? (
             <>

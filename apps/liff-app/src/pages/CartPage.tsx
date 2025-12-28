@@ -1,14 +1,15 @@
 import { ShoppingBag, Trash2 } from 'lucide-react';
 import { useCartStore } from '../stores/cartStore';
-import { CartItem } from '../components/CartItem';
+import { CartItemWithNote } from '../components/CartItem';
 
 interface CartPageProps {
   onCheckout: () => void;
 }
 
 export function CartPage({ onCheckout }: CartPageProps) {
-  const { items, clearCart, getTotal } = useCartStore();
+  const { items, clearCart, getTotal, getGroupedItems } = useCartStore();
   const total = getTotal();
+  const groupedItems = getGroupedItems();
 
   if (items.length === 0) {
     return (
@@ -23,7 +24,7 @@ export function CartPage({ onCheckout }: CartPageProps) {
   }
 
   return (
-    <div className="space-y-4 pb-32">
+    <div className="space-y-4 pb-36">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-bold text-slate-800">
@@ -38,10 +39,30 @@ export function CartPage({ onCheckout }: CartPageProps) {
         </button>
       </div>
 
-      {/* Cart Items */}
-      <div className="space-y-3">
-        {items.map((item, index) => (
-          <CartItem key={`${item.product.id}-${index}`} item={item} />
+      {/* Cart Items - แสดงแยกเป็นกลุ่มตามสินค้า */}
+      <div className="space-y-4">
+        {groupedItems.map((group) => (
+          <div key={group.product.id} className="space-y-2">
+            {/* หัวกลุ่ม */}
+            {group.items.length > 1 && (
+              <div className="flex items-center gap-2 text-sm">
+                <span className="font-bold text-slate-800">{group.product.name}</span>
+                <span className="bg-brand-100 text-brand-700 px-2 py-0.5 rounded-full text-xs font-medium">
+                  x{group.items.length}
+                </span>
+              </div>
+            )}
+            
+            {/* รายการแต่ละจาน */}
+            {group.items.map((item, index) => (
+              <CartItemWithNote
+                key={item.id}
+                item={item}
+                itemNumber={index + 1}
+                totalItems={group.items.length}
+              />
+            ))}
+          </div>
         ))}
       </div>
 
@@ -50,13 +71,13 @@ export function CartPage({ onCheckout }: CartPageProps) {
         <h3 className="font-bold text-slate-800 mb-3">สรุปรายการ</h3>
         
         <div className="space-y-2 text-sm">
-          {items.map((item) => (
-            <div key={item.product.id} className="flex justify-between">
+          {groupedItems.map((group) => (
+            <div key={group.product.id} className="flex justify-between">
               <span className="text-slate-600">
-                {item.product.name} x{item.quantity}
+                {group.product.name} x{group.items.length}
               </span>
               <span className="font-medium">
-                ฿{item.product.price * item.quantity}
+                ฿{group.product.price * group.items.length}
               </span>
             </div>
           ))}
@@ -64,19 +85,20 @@ export function CartPage({ onCheckout }: CartPageProps) {
 
         <div className="border-t border-slate-200 mt-3 pt-3">
           <div className="flex justify-between items-center">
-            <span className="font-bold text-slate-800">รวมทั้งหมด</span>
+            <span className="font-bold text-slate-800">รวมค่าอาหาร</span>
             <span className="text-2xl font-bold text-brand-700">฿{total}</span>
           </div>
+          <p className="text-xs text-slate-500 mt-1">* ไม่รวมค่าจัดส่ง (ถ้ามี)</p>
         </div>
       </div>
 
       {/* Fixed Checkout Button */}
-      <div className="fixed bottom-20 left-0 right-0 p-4 bg-gradient-to-t from-amber-50 to-transparent">
+      <div className="fixed bottom-20 left-0 right-0 p-4 bg-gradient-to-t from-amber-50 via-amber-50/95 to-transparent">
         <button
           onClick={onCheckout}
-          className="w-full bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-brand-200 transition-colors"
+          className="w-full bg-gradient-to-r from-brand-600 to-brand-700 hover:from-brand-700 hover:to-brand-800 text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-brand-200 transition-all hover:shadow-xl"
         >
-          สั่งซื้อ • ฿{total}
+          ดำเนินการสั่งซื้อ • ฿{total}
         </button>
       </div>
     </div>

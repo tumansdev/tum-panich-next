@@ -70,7 +70,7 @@ function App() {
 
   const handleAddWithOptions = () => {
     if (selectedProduct) {
-      addItem(selectedProduct, 1, { 'noodle-type': selectedNoodle });
+      addItem(selectedProduct, { 'noodle-type': selectedNoodle });
       setSelectedProduct(null);
     }
   };

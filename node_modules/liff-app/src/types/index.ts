@@ -19,11 +19,12 @@ export interface ProductOption {
   required: boolean;
 }
 
+// Cart Item แบบใหม่ - แยกเป็นรายการแต่ละจาน
 export interface CartItem {
+  id: string;           // unique ID ต่อรายการ (uuid)
   product: Product;
-  quantity: number;
+  note: string;         // โน้ตต่อจาน เช่น "ไม่ใส่ผัก"
   selectedOptions?: Record<string, string>;
-  note?: string;
 }
 
 export interface Order {
@@ -33,8 +34,10 @@ export interface Order {
   status: OrderStatus;
   customerName: string;
   customerPhone: string;
-  deliveryType: 'pickup' | 'delivery';
+  deliveryType: 'pickup' | 'free-delivery' | 'easy-delivery';
   deliveryAddress?: string;
+  landmark?: string;     // จุดสังเกต
+  distanceKm?: number;   // ระยะทางจากร้าน
   paymentMethod: 'cash' | 'promptpay';
   paymentStatus: 'pending' | 'paid' | 'confirmed';
   slipImage?: string;
@@ -51,6 +54,8 @@ export type OrderStatus =
   | 'delivered'    // ส่งแล้ว
   | 'completed'    // เสร็จสิ้น
   | 'cancelled';   // ยกเลิก
+
+export type DeliveryType = 'pickup' | 'free-delivery' | 'easy-delivery';
 
 export interface Category {
   id: string;
