@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 interface CustomerInfo {
+  name: string;
   phone: string;
   address: string;
   landmark: string;
@@ -14,6 +15,7 @@ interface CustomerState {
 }
 
 const defaultInfo: CustomerInfo = {
+  name: '',
   phone: '',
   address: '',
   landmark: '',

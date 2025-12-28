@@ -9,11 +9,18 @@ interface ProfilePageProps {
 
 export function ProfilePage({ profile }: ProfilePageProps) {
   const { info, updateInfo } = useCustomerStore();
+  const [isEditingName, setIsEditingName] = useState(false);
   const [isEditingPhone, setIsEditingPhone] = useState(false);
   const [isEditingAddress, setIsEditingAddress] = useState(false);
+  const [tempName, setTempName] = useState(info.name);
   const [tempPhone, setTempPhone] = useState(info.phone);
   const [tempAddress, setTempAddress] = useState(info.address);
   const [tempLandmark, setTempLandmark] = useState(info.landmark);
+
+  const saveName = () => {
+    updateInfo({ name: tempName });
+    setIsEditingName(false);
+  };
 
   const savePhone = () => {
     updateInfo({ phone: tempPhone });
@@ -57,6 +64,50 @@ export function ProfilePage({ profile }: ProfilePageProps) {
             )}
           </div>
         </div>
+      </div>
+
+      {/* Name */}
+      <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-bold text-slate-800 flex items-center gap-2">
+            <User size={18} className="text-brand-600" />
+            ชื่อ-นามสกุล
+          </h3>
+          {!isEditingName && (
+            <button
+              onClick={() => {
+                setTempName(info.name);
+                setIsEditingName(true);
+              }}
+              className="text-brand-600 text-sm font-medium flex items-center gap-1"
+            >
+              <Edit2 size={14} />
+              แก้ไข
+            </button>
+          )}
+        </div>
+
+        {isEditingName ? (
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={tempName}
+              onChange={(e) => setTempName(e.target.value)}
+              placeholder="กรอกชื่อ-นามสกุล"
+              className="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+            />
+            <button
+              onClick={saveName}
+              className="w-12 h-12 bg-brand-600 text-white rounded-xl flex items-center justify-center"
+            >
+              <Check size={20} />
+            </button>
+          </div>
+        ) : (
+          <p className={`text-lg ${info.name ? 'text-slate-800' : 'text-slate-400'}`}>
+            {info.name || 'ยังไม่ได้ระบุชื่อ'}
+          </p>
+        )}
       </div>
 
       {/* Phone Number */}

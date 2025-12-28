@@ -63,9 +63,10 @@ export function CheckoutPage({ onBack, onOrderComplete }: CheckoutPageProps) {
 
   // Pre-fill from saved customer info
   useEffect(() => {
-    if (savedCustomer.phone || savedCustomer.address) {
+    if (savedCustomer.name || savedCustomer.phone || savedCustomer.address) {
       setForm((prev) => ({
         ...prev,
+        name: savedCustomer.name || prev.name,
         phone: savedCustomer.phone || prev.phone,
         address: savedCustomer.address || prev.address,
         landmark: savedCustomer.landmark || prev.landmark,
