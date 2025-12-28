@@ -166,28 +166,19 @@ export function CheckoutPage({ onBack, onOrderComplete }: CheckoutPageProps) {
 
       clearCart();
 
-      // ถ้าอยู่ใน LIFF ให้ส่ง Flex Message ใบเสร็จแล้วปิด
-      if (isInLiff()) {
-        const receiptItems = Object.values(groupedItems).flatMap(group =>
-          group.items.map(item => ({
-            name: item.product.name,
-            quantity: 1,
-            price: item.product.price,
-            options: item.selectedOptions,
-          }))
-        );
+      // แสดง alert ขอบคุณ
+      alert(`✅ สั่งซื้อสำเร็จ!\n\n🧾 หมายเลขออเดอร์: #${order.id}\n💰 ยอดรวม: ฿${total.toLocaleString()}\n\nขอบคุณที่ใช้บริการร้านตั้มพานิช 🍜`);
 
-        await sendReceiptAndClose({
-          orderId: order.id,
-          items: receiptItems,
-          totalAmount: total,
-          deliveryType: form.deliveryType === 'pickup' ? 'pickup' : 'delivery',
-          customerName: form.name,
-          createdAt: new Date().toISOString(),
-        });
-        // LIFF จะปิดอัตโนมัติหลังส่ง Flex Message
+      // ถ้าอยู่ใน LINE App ให้ปิด LIFF
+      if (isInLiff()) {
+        console.log('In LINE App - closing LIFF');
+        const liffModule = await import('@line/liff').then(m => m.default);
+        if (liffModule.isInClient()) {
+          liffModule.closeWindow();
+        }
       } else {
-        // ถ้าไม่ได้อยู่ใน LIFF ให้ไปหน้า order status
+        // ถ้าไม่ได้อยู่ใน LINE App ให้ไปหน้า order status
+        console.log('Not in LINE App - navigating to order status');
         onOrderComplete(order.id);
       }
     } catch (error) {
