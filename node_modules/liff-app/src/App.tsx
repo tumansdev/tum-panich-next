@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { initializeLiff, getProfile, isLoggedIn } from './lib/liff';
 import { LiffProfile, Product } from './types';
+import { Header } from './components/Header';
 import { BottomNav } from './components/BottomNav';
 import { HomePage } from './pages/HomePage';
 import { MenuPage } from './pages/MenuPage';
@@ -107,8 +108,11 @@ function App() {
 
   return (
     <div className="min-h-screen bg-amber-50">
-      {/* Main Content - No Header */}
-      <main className="p-4 pt-6 pb-24">
+      {/* Header with navigation breadcrumb */}
+      <Header activeTab={activeTab} view={view} onBack={handleBackToMain} />
+
+      {/* Main Content */}
+      <main className="p-4 pt-2 pb-24">
         {view === 'main' && (
           <>
             {activeTab === 'home' && (

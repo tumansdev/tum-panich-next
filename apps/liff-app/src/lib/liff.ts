@@ -17,6 +17,14 @@ export async function initializeLiff(): Promise<boolean> {
     await liff.init({ liffId: LIFF_ID });
     isInitialized = true;
     console.log('LIFF initialized successfully');
+    
+    // ถ้ายังไม่ได้ login และไม่ใช่ใน LINE App ให้ login อัตโนมัติ
+    if (!liff.isLoggedIn()) {
+      console.log('User not logged in, redirecting to login...');
+      liff.login();
+      return false; // Will reload after login
+    }
+    
     return true;
   } catch (error) {
     console.error('LIFF init failed:', error);
