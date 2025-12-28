@@ -13,6 +13,7 @@ import menuRoutes from './routes/menu';
 import categoriesRoutes from './routes/categories';
 import ordersRoutes, { setIO } from './routes/orders';
 import announcementsRoutes from './routes/announcements';
+import webhookRoutes from './routes/webhook';
 import pool from './db';
 
 const app = express();
@@ -60,6 +61,9 @@ app.use('/api/menu', menuRoutes);
 app.use('/api/categories', categoriesRoutes);
 app.use('/api/orders', ordersRoutes);
 app.use('/api/announcements', announcementsRoutes);
+
+// LINE Webhook (needs express.text() for signature verification)
+app.use('/api/webhook', express.text({ type: 'application/json' }), webhookRoutes);
 
 // Socket.IO Connection Handling
 io.on('connection', (socket: Socket) => {

@@ -5,6 +5,8 @@ import { useCustomerStore } from '../stores/customerStore';
 import { DistanceChecker } from '../components/DistanceChecker';
 import { DeliveryType } from '../types';
 import { ordersAPI } from '../lib/api';
+import { sendReceiptAndClose } from '../lib/receiptFlex';
+import { isInLiff } from '../lib/liff';
 
 interface CheckoutPageProps {
   onBack: () => void;
@@ -163,7 +165,31 @@ export function CheckoutPage({ onBack, onOrderComplete }: CheckoutPageProps) {
       }
 
       clearCart();
-      onOrderComplete(order.id);
+
+      // ถ้าอยู่ใน LIFF ให้ส่ง Flex Message ใบเสร็จแล้วปิด
+      if (isInLiff()) {
+        const receiptItems = Object.values(groupedItems).flatMap(group =>
+          group.items.map(item => ({
+            name: item.product.name,
+            quantity: 1,
+            price: item.product.price,
+            options: item.selectedOptions,
+          }))
+        );
+
+        await sendReceiptAndClose({
+          orderId: order.id,
+          items: receiptItems,
+          totalAmount: total,
+          deliveryType: form.deliveryType === 'pickup' ? 'pickup' : 'delivery',
+          customerName: form.name,
+          createdAt: new Date().toISOString(),
+        });
+        // LIFF จะปิดอัตโนมัติหลังส่ง Flex Message
+      } else {
+        // ถ้าไม่ได้อยู่ใน LIFF ให้ไปหน้า order status
+        onOrderComplete(order.id);
+      }
     } catch (error) {
       console.error('Order error:', error);
       alert('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');

@@ -11,7 +11,7 @@ import { OrderStatusPage } from './pages/OrderStatusPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { OurStoryPage } from './pages/OurStoryPage';
 import { OrdersPage } from './pages/OrdersPage';
-import { noodleOptions } from './data/menu';
+import { noodleOptions } from './config/menuOptions';
 import { useCartStore } from './stores/cartStore';
 import { X } from 'lucide-react';
 
@@ -117,6 +117,7 @@ function App() {
           <>
             {activeTab === 'home' && (
               <HomePage 
+                profile={profile}
                 onNavigate={handleNavigate}
                 onSelectProduct={handleSelectProduct}
               />

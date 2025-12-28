@@ -1,15 +1,16 @@
-import { useState, useEffect } from 'react';
-import { ChevronRight, Sparkles, Search, Bell, SlidersHorizontal, Flame, RefreshCw } from 'lucide-react';
+import { useState } from 'react';
+import { ChevronRight, Search, SlidersHorizontal, Flame, RefreshCw, User } from 'lucide-react';
 import { ProductCard } from '../components/ProductCard';
-import { Product } from '../types';
+import { Product, LiffProfile } from '../types';
 import { useMenu } from '../hooks/useMenu';
 
 interface HomePageProps {
+  profile?: LiffProfile | null;
   onNavigate: (tab: 'menu' | 'cart') => void;
   onSelectProduct: (product: Product) => void;
 }
 
-export function HomePage({ onNavigate, onSelectProduct }: HomePageProps) {
+export function HomePage({ profile, onNavigate, onSelectProduct }: HomePageProps) {
   const { menuItems, categories, loading, error, refetch } = useMenu();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
@@ -23,7 +24,7 @@ export function HomePage({ onNavigate, onSelectProduct }: HomePageProps) {
         const matchSearch = !searchQuery.trim() || 
           item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           item.description?.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchCategory = !activeCategory || item.category === activeCategory || item.categoryId === activeCategory;
+        const matchCategory = !activeCategory || item.category === activeCategory;
         return matchSearch && matchCategory;
       })
     : null;
@@ -33,9 +34,9 @@ export function HomePage({ onNavigate, onSelectProduct }: HomePageProps) {
     return (
       <div className="space-y-5 -mt-4">
         {/* Hero Section Skeleton */}
-        <div className="relative bg-gradient-to-br from-brand-600 via-brand-500 to-brand-600 -mx-4 px-4 pt-4 pb-8 rounded-b-[2.5rem] shadow-lg">
+        <div className="relative bg-gradient-to-br from-brand-700 via-brand-600 to-brand-700 -mx-4 px-4 pt-4 pb-8 rounded-b-[2.5rem] shadow-lg">
           <div className="flex items-center justify-between mb-6">
-            <div className="w-12 h-12 rounded-xl bg-white/20 animate-pulse" />
+            <div className="w-12 h-12 rounded-full bg-white/20 animate-pulse" />
             <div className="w-10 h-10 rounded-full bg-white/20 animate-pulse" />
           </div>
           <div className="space-y-2 mb-5">
@@ -80,14 +81,21 @@ export function HomePage({ onNavigate, onSelectProduct }: HomePageProps) {
   return (
     <div className="space-y-5 -mt-4">
       {/* Hero Section - Curved Bottom */}
-      <div className="relative bg-gradient-to-br from-brand-600 via-brand-500 to-brand-600 -mx-4 px-4 pt-4 pb-8 rounded-b-[2.5rem] shadow-lg">
-        {/* Top Bar: Logo + Notification */}
+      <div className="relative bg-gradient-to-br from-brand-700 via-brand-600 to-brand-700 -mx-4 px-4 pt-4 pb-8 rounded-b-[2.5rem] shadow-lg">
+        {/* Top Bar: Profile Photo + Refresh */}
         <div className="flex items-center justify-between mb-6">
-          <img 
-            src="/images/logo.png" 
-            alt="ตั้มพานิช" 
-            className="w-12 h-12 rounded-xl shadow-md border-2 border-white/20" 
-          />
+          {/* Profile Photo or Logo */}
+          {profile?.pictureUrl ? (
+            <img 
+              src={profile.pictureUrl} 
+              alt={profile.displayName}
+              className="w-12 h-12 rounded-full shadow-md border-2 border-white/30 object-cover" 
+            />
+          ) : (
+            <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center shadow-md border-2 border-white/30">
+              <User size={24} className="text-white/80" />
+            </div>
+          )}
           <button 
             onClick={refetch}
             className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center"
@@ -96,9 +104,11 @@ export function HomePage({ onNavigate, onSelectProduct }: HomePageProps) {
           </button>
         </div>
         
-        {/* Welcome Text */}
+        {/* Welcome Text with LINE Name */}
         <div className="mb-5">
-          <p className="text-white/90 text-sm mb-1">สวัสดี, ร้านตั้มพานิช 👋</p>
+          <p className="text-white/90 text-sm mb-1">
+            สวัสดี, คุณ {profile?.displayName || 'ผู้ใช้งาน'} 👋
+          </p>
           <h1 className="text-white text-2xl font-bold leading-tight">
             วันนี้รับ<br/>
             <span className="text-amber-200">อะไรดีครับ?</span>

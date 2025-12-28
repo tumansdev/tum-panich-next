@@ -40,6 +40,8 @@ services:
       - PORT=3000
       - DATABASE_URL=postgresql://postgres:password@db:5432/tum_panich?schema=public
       - NODE_ENV=production
+      - LINE_CHANNEL_SECRET=b249018129ffc0b2bb0879cbe10a94fa
+      - LINE_CHANNEL_ACCESS_TOKEN=JUAX778Yd8k4ZHIO7qMHVSfH5YG41jV9IoMgyaoHEoYkZspZhBHJT4PLCl60lBvMZEU7nc/f/cwrvnwYUl2CPAB4MU27TcQde0+DTXMusA+uv0XL3WOLKMuewxctR9jSsyGiAGmn/hEcUPGDh8H13QdB04t89/1O/w1cDnyilFU=
     volumes:
       - ./uploads:/app/uploads
     depends_on:
