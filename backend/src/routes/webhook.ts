@@ -205,17 +205,9 @@ async function handleFollowEvent(event: LineEvent): Promise<void> {
  * Webhook endpoint
  */
 router.post('/', async (req: Request, res: Response) => {
-  // LINE ส่ง body แบบ raw string สำหรับ verify signature
-  const bodyString = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
-  const signature = req.headers['x-line-signature'] as string;
-
-  // ตรวจสอบ signature (ข้ามถ้ายังไม่ได้ตั้งค่า secret)
-  if (CHANNEL_SECRET && !verifySignature(bodyString, signature)) {
-    console.warn('Invalid LINE signature');
-    return res.status(401).send('Invalid signature');
-  }
-
-  const body: LineWebhookBody = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+  console.log('Webhook received:', JSON.stringify(req.body, null, 2));
+  
+  const body: LineWebhookBody = req.body;
   const events = body.events || [];
 
   console.log(`Received ${events.length} webhook events`);

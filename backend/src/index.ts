@@ -62,8 +62,8 @@ app.use('/api/categories', categoriesRoutes);
 app.use('/api/orders', ordersRoutes);
 app.use('/api/announcements', announcementsRoutes);
 
-// LINE Webhook (needs express.text() for signature verification)
-app.use('/api/webhook', express.text({ type: 'application/json' }), webhookRoutes);
+// LINE Webhook
+app.use('/api/webhook', webhookRoutes);
 
 // Socket.IO Connection Handling
 io.on('connection', (socket: Socket) => {

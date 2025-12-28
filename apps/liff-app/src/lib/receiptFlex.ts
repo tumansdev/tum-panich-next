@@ -258,25 +258,26 @@ export function createReceiptFlexMessage(data: ReceiptData): Parameters<typeof l
 }
 
 /**
- * ส่ง Flex Message ใบเสร็จและปิด LIFF
+ * แสดงข้อความขอบคุณและปิด LIFF
+ * หมายเหตุ: liff.sendMessages() ใช้ได้เฉพาะในบริบทแชท (จาก Rich Menu หรือ Keyword)
+ * ถ้าเปิด LIFF จาก external browser จะส่งไม่ได้
  */
 export async function sendReceiptAndClose(data: ReceiptData): Promise<boolean> {
   if (!isInLiff()) {
-    console.log('Not in LIFF, skipping receipt message');
+    console.log('Not in LIFF, skipping receipt');
     return false;
   }
 
   try {
-    const liffModule = await import('@line/liff').then(m => m.default);
-    const flexMessage = createReceiptFlexMessage(data);
-    await liffModule.sendMessages([flexMessage]);
-    console.log('Receipt sent successfully');
+    // แสดง alert ขอบคุณ
+    alert(`✅ สั่งซื้อสำเร็จ!\n\n🧾 หมายเลขออเดอร์: #${data.orderId}\n💰 ยอดรวม: ฿${data.totalAmount.toLocaleString()}\n\nขอบคุณที่ใช้บริการร้านตั้มพานิช 🍜`);
     
-    // ปิด LIFF หลังส่งใบเสร็จ
+    // ปิด LIFF
     closeLiff();
     return true;
   } catch (error) {
-    console.error('Failed to send receipt:', error);
+    console.error('Failed to close LIFF:', error);
     return false;
   }
 }
+
