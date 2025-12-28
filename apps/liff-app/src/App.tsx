@@ -7,6 +7,7 @@ import { MenuPage } from './pages/MenuPage';
 import { CartPage } from './pages/CartPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { OrderStatusPage } from './pages/OrderStatusPage';
+import { ProfilePage } from './pages/ProfilePage';
 import { noodleOptions } from './data/menu';
 import { useCartStore } from './stores/cartStore';
 import { X } from 'lucide-react';
@@ -119,37 +120,7 @@ function App() {
               <CartPage onCheckout={handleCheckout} />
             )}
             {activeTab === 'profile' && (
-              <div className="space-y-4">
-                {profile ? (
-                  <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100 flex items-center gap-4">
-                    <img
-                      src={profile.pictureUrl || '/default-avatar.png'}
-                      alt={profile.displayName}
-                      className="w-16 h-16 rounded-full"
-                    />
-                    <div>
-                      <h3 className="font-bold text-slate-800">{profile.displayName}</h3>
-                      <p className="text-sm text-slate-500">{profile.statusMessage}</p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100 text-center">
-                    <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <span className="text-3xl">👤</span>
-                    </div>
-                    <h3 className="font-bold text-slate-700 mb-1">ยังไม่ได้เข้าสู่ระบบ</h3>
-                    <p className="text-slate-500 text-sm mb-4">เข้าสู่ระบบเพื่อดูประวัติการสั่งซื้อ</p>
-                  </div>
-                )}
-                
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-                  <h4 className="font-bold text-amber-800 mb-2">📍 ร้าน ตั้มพานิช</h4>
-                  <div className="text-sm text-amber-700 space-y-1">
-                    <p>🕐 เปิดบริการ: 07:00 - 14:00 น.</p>
-                    <p>📞 โทร: 0xx-xxx-xxxx</p>
-                  </div>
-                </div>
-              </div>
+              <ProfilePage profile={profile} />
             )}
           </>
         )}

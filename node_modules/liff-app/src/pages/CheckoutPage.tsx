@@ -1,6 +1,7 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, MapPin, Phone, User, Upload, CheckCircle, Copy, Store, Truck, Package } from 'lucide-react';
 import { useCartStore } from '../stores/cartStore';
+import { useCustomerStore } from '../stores/customerStore';
 import { DistanceChecker } from '../components/DistanceChecker';
 import { DeliveryType } from '../types';
 
@@ -45,7 +46,8 @@ const DELIVERY_OPTIONS = [
 ];
 
 export function CheckoutPage({ onBack, onOrderComplete }: CheckoutPageProps) {
-  const { items, getTotal, clearCart, getGroupedItems } = useCartStore();
+  const { getTotal, clearCart, getGroupedItems } = useCartStore();
+  const { info: savedCustomer } = useCustomerStore();
   const total = getTotal();
   const groupedItems = getGroupedItems();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -57,6 +59,18 @@ export function CheckoutPage({ onBack, onOrderComplete }: CheckoutPageProps) {
     address: '',
     landmark: '',
   });
+
+  // Pre-fill from saved customer info
+  useEffect(() => {
+    if (savedCustomer.phone || savedCustomer.address) {
+      setForm((prev) => ({
+        ...prev,
+        phone: savedCustomer.phone || prev.phone,
+        address: savedCustomer.address || prev.address,
+        landmark: savedCustomer.landmark || prev.landmark,
+      }));
+    }
+  }, [savedCustomer]);
 
   const [distanceKm, setDistanceKm] = useState<number | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'promptpay'>('promptpay');
