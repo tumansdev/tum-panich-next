@@ -166,7 +166,10 @@ async function handleTextMessage(event: LineEvent): Promise<void> {
 
   // คำที่ตอบอัตโนมัติ
   if (text.includes('สวัสดี') || text.includes('hello') || text === 'hi') {
-    await replyMessage(replyToken, [createWelcomeFlexMessage()]);
+    await replyMessage(replyToken, [{
+      type: 'text',
+      text: '🍜 สวัสดีค่ะ ยินดีต้อนรับสู่ร้านตั้มพานิช!\n\n👉 สั่งอาหาร: https://liff.line.me/2008553802-0TOhKu6u\n📞 โทร: 081-234-5678',
+    }]);
   } else if (text.includes('เมนู') || text.includes('สั่ง') || text.includes('อาหาร')) {
     await replyMessage(replyToken, [{
       type: 'text',
