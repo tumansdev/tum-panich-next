@@ -105,10 +105,7 @@ function App() {
     <div className="min-h-screen bg-amber-50">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 h-14 bg-white/95 backdrop-blur-md flex items-center justify-center z-50 border-b border-brand-100 shadow-sm">
-        <h1 className="text-lg font-bold text-brand-700 flex items-center gap-2">
-          <img src="/images/logo.png" alt="ตั้มพานิช" className="h-9 w-9 rounded-lg shadow-sm" />
-          ตั้มพานิช
-        </h1>
+        <img src="/images/logo.png" alt="ตั้มพานิช" className="h-10 w-auto" />
       </header>
 
       {/* Spacer for fixed header */}

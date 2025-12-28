@@ -40,39 +40,36 @@ export function HomePage({ onNavigate, onSelectProduct }: HomePageProps) {
 
   return (
     <div className="space-y-5">
-      {/* Hero Logo Section */}
-      <div className="relative bg-gradient-to-br from-brand-800 via-brand-700 to-amber-700 rounded-3xl overflow-hidden shadow-xl">
+      {/* Hero Section - Clean & Minimal */}
+      <div className="relative bg-gradient-to-br from-brand-700 via-brand-600 to-amber-600 rounded-3xl overflow-hidden shadow-xl">
         <div className="absolute inset-0 bg-[url('/images/pattern.png')] opacity-5" />
         
         {/* Decorative circles */}
-        <div className="absolute -right-12 -bottom-12 w-48 h-48 bg-white/10 rounded-full" />
-        <div className="absolute -left-8 top-8 w-24 h-24 bg-white/5 rounded-full" />
+        <div className="absolute -right-12 -bottom-12 w-40 h-40 bg-white/10 rounded-full" />
+        <div className="absolute -left-6 top-6 w-20 h-20 bg-white/5 rounded-full" />
         
-        <div className="relative p-6 flex flex-col items-center text-center">
+        <div className="relative p-5 flex items-center gap-4">
           {/* Logo */}
-          <div className="relative mb-3">
-            <img 
-              src="/images/logo.png" 
-              alt="ตั้มพานิช" 
-              className="w-24 h-24 rounded-2xl shadow-2xl border-4 border-white/20" 
-            />
-            <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center border-2 border-white shadow-lg">
-              <span className="text-white text-xs">เปิด</span>
-            </div>
+          <img 
+            src="/images/logo.png" 
+            alt="ตั้มพานิช" 
+            className="w-16 h-16 rounded-xl shadow-lg border-2 border-white/20 flex-shrink-0" 
+          />
+          
+          {/* Content */}
+          <div className="flex-1">
+            <p className="text-white/90 text-sm mb-0.5">สวัสดีครับ! 👋</p>
+            <p className="text-white text-xs opacity-80">หมูแดงนุ่ม น้ำซุปหอม</p>
+            
+            {/* CTA Button */}
+            <button
+              onClick={() => onNavigate('menu')}
+              className="mt-2 bg-white text-brand-700 font-bold px-4 py-2 rounded-full text-xs shadow-lg flex items-center gap-1 hover:scale-105 transition-transform active:scale-95"
+            >
+              ดูเมนูทั้งหมด
+              <ChevronRight size={14} />
+            </button>
           </div>
-          
-          {/* Brand Name */}
-          <h1 className="text-white text-2xl font-bold mb-1">ตั้มพานิช</h1>
-          <p className="text-white/80 text-sm mb-3">紅紅火火 • หมูแดงนุ่ม น้ำซุปหอม</p>
-          
-          {/* CTA Button */}
-          <button
-            onClick={() => onNavigate('menu')}
-            className="bg-white text-brand-700 font-bold px-6 py-2.5 rounded-full text-sm shadow-lg flex items-center gap-1 hover:scale-105 transition-transform active:scale-95"
-          >
-            ดูเมนูทั้งหมด
-            <ChevronRight size={18} />
-          </button>
         </div>
       </div>
 
