@@ -48,10 +48,13 @@ export function ProfilePage({ profile }: ProfilePageProps) {
             {profile?.statusMessage && (
               <p className="text-white/80 text-sm">{profile.statusMessage}</p>
             )}
-            <span className="inline-flex items-center gap-1 text-xs bg-white/20 px-2 py-1 rounded-full mt-2">
-              <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-              เข้าสู่ระบบผ่าน LINE
-            </span>
+            {/* แสดง LINE badge เฉพาะเมื่อล็อกอินแล้ว */}
+            {profile && (
+              <span className="inline-flex items-center gap-1 text-xs bg-green-500/30 text-green-100 px-2 py-1 rounded-full mt-2">
+                <span className="w-2 h-2 bg-green-400 rounded-full" />
+                เชื่อมต่อ LINE แล้ว
+              </span>
+            )}
           </div>
         </div>
       </div>

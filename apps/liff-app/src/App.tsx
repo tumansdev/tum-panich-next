@@ -8,12 +8,14 @@ import { CartPage } from './pages/CartPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { OrderStatusPage } from './pages/OrderStatusPage';
 import { ProfilePage } from './pages/ProfilePage';
+import { OurStoryPage } from './pages/OurStoryPage';
+import { OrdersPage } from './pages/OrdersPage';
 import { noodleOptions } from './data/menu';
 import { useCartStore } from './stores/cartStore';
 import { X } from 'lucide-react';
 
-type Tab = 'home' | 'menu' | 'cart' | 'profile';
-type View = 'main' | 'checkout' | 'order-status';
+type Tab = 'home' | 'orders' | 'cart' | 'story' | 'profile';
+type View = 'main' | 'checkout' | 'order-status' | 'menu';
 
 function App() {
   const [activeTab, setActiveTab] = useState<Tab>('home');
@@ -46,8 +48,12 @@ function App() {
     setView('main');
   };
 
-  const handleNavigate = (tab: 'menu' | 'cart') => {
-    setActiveTab(tab);
+  const handleNavigate = (target: 'menu' | 'cart') => {
+    if (target === 'menu') {
+      setView('menu');
+    } else {
+      setActiveTab('cart');
+    }
   };
 
   const handleCheckout = () => {
@@ -62,6 +68,10 @@ function App() {
   const handleBackToHome = () => {
     setView('main');
     setActiveTab('home');
+  };
+
+  const handleBackToMain = () => {
+    setView('main');
   };
 
   const handleSelectProduct = (product: Product) => {
@@ -81,10 +91,11 @@ function App() {
     return (
       <div className="min-h-screen bg-amber-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 bg-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg animate-pulse">
-            <span className="text-2xl">🍜</span>
+          <div className="w-20 h-20 bg-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg animate-pulse">
+            <img src="/images/logo.png" alt="Logo" className="w-14 h-14 rounded-xl" />
           </div>
           <p className="text-brand-700 font-medium">กำลังโหลด...</p>
+          <p className="text-slate-500 text-sm mt-1">ยินดีต้อนรับสู่ ตั้มพานิช</p>
         </div>
       </div>
     );
@@ -93,9 +104,9 @@ function App() {
   return (
     <div className="min-h-screen bg-amber-50">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 h-14 bg-white/90 backdrop-blur-md flex items-center justify-center z-50 border-b border-brand-100 shadow-sm">
+      <header className="fixed top-0 left-0 right-0 h-14 bg-white/95 backdrop-blur-md flex items-center justify-center z-50 border-b border-brand-100 shadow-sm">
         <h1 className="text-lg font-bold text-brand-700 flex items-center gap-2">
-          <img src="/images/logo.png" alt="ตั้มพานิช" className="h-8 w-8 object-contain" />
+          <img src="/images/logo.png" alt="ตั้มพานิช" className="h-9 w-9 rounded-lg shadow-sm" />
           ตั้มพานิช
         </h1>
       </header>
@@ -113,16 +124,31 @@ function App() {
                 onSelectProduct={handleSelectProduct}
               />
             )}
-            {activeTab === 'menu' && (
-              <MenuPage onSelectProduct={handleSelectProduct} />
+            {activeTab === 'orders' && (
+              <OrdersPage />
             )}
             {activeTab === 'cart' && (
               <CartPage onCheckout={handleCheckout} />
+            )}
+            {activeTab === 'story' && (
+              <OurStoryPage />
             )}
             {activeTab === 'profile' && (
               <ProfilePage profile={profile} />
             )}
           </>
+        )}
+
+        {view === 'menu' && (
+          <div>
+            <button
+              onClick={handleBackToMain}
+              className="mb-3 text-brand-600 text-sm font-medium flex items-center gap-1"
+            >
+              ← กลับหน้าแรก
+            </button>
+            <MenuPage onSelectProduct={handleSelectProduct} />
+          </div>
         )}
 
         {view === 'checkout' && (
@@ -141,7 +167,7 @@ function App() {
       </main>
 
       {/* Bottom Navigation */}
-      {view === 'main' && (
+      {(view === 'main' || view === 'menu') && (
         <BottomNav activeTab={activeTab} onTabChange={handleTabChange} />
       )}
 

@@ -1,7 +1,7 @@
-import { Home, UtensilsCrossed, ShoppingBag, User } from 'lucide-react';
+import { Home, ClipboardList, ShoppingBag, BookOpen, User } from 'lucide-react';
 import { useCartStore } from '../stores/cartStore';
 
-type Tab = 'home' | 'menu' | 'cart' | 'profile';
+type Tab = 'home' | 'orders' | 'cart' | 'story' | 'profile';
 
 interface BottomNavProps {
   activeTab: Tab;
@@ -13,8 +13,9 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
 
   const tabs = [
     { id: 'home' as Tab, label: 'หน้าแรก', icon: Home },
-    { id: 'menu' as Tab, label: 'เมนู', icon: UtensilsCrossed },
+    { id: 'orders' as Tab, label: 'ออเดอร์', icon: ClipboardList },
     { id: 'cart' as Tab, label: 'ตะกร้า', icon: ShoppingBag, badge: itemCount },
+    { id: 'story' as Tab, label: 'เรื่องราว', icon: BookOpen },
     { id: 'profile' as Tab, label: 'โปรไฟล์', icon: User },
   ];
 
@@ -34,7 +35,7 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
               }`}
             >
               <div className="relative">
-                <Icon size={24} strokeWidth={isActive ? 2.5 : 2} />
+                <Icon size={22} strokeWidth={isActive ? 2.5 : 2} />
                 {tab.badge !== undefined && tab.badge > 0 && (
                   <span className="absolute -top-2 -right-2 bg-brand-600 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full">
                     {tab.badge > 99 ? '99+' : tab.badge}
