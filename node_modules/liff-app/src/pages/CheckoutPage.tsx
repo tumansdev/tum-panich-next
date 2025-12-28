@@ -4,6 +4,7 @@ import { useCartStore } from '../stores/cartStore';
 import { useCustomerStore } from '../stores/customerStore';
 import { DistanceChecker } from '../components/DistanceChecker';
 import { DeliveryType } from '../types';
+import { ordersAPI } from '../lib/api';
 
 interface CheckoutPageProps {
   onBack: () => void;
@@ -123,12 +124,50 @@ export function CheckoutPage({ onBack, onOrderComplete }: CheckoutPageProps) {
 
     setIsSubmitting(true);
 
-    // TODO: ส่งข้อมูลไป API
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      // สร้าง order items จาก cart
+      const orderItems = Object.values(groupedItems).flatMap(group => 
+        group.items.map(item => ({
+          productId: item.product.id,
+          productName: item.product.name,
+          price: item.product.price,
+          note: item.note || undefined,
+          options: item.selectedOptions,
+        }))
+      );
 
-    const orderId = `TP${Date.now()}`;
-    clearCart();
-    onOrderComplete(orderId);
+      // ส่ง order ไป API
+      const orderData = {
+        items: orderItems,
+        total_amount: total,
+        customer_name: form.name,
+        customer_phone: form.phone,
+        delivery_type: form.deliveryType,
+        delivery_address: form.address || undefined,
+        landmark: form.landmark || undefined,
+        distance_km: distanceKm || undefined,
+        payment_method: paymentMethod,
+        line_user_id: localStorage.getItem('liff_user_id') || undefined,
+      };
+
+      const order = await ordersAPI.create(orderData);
+
+      // อัพโหลดสลิป (ถ้ามี)
+      if (slipImage && paymentMethod === 'promptpay') {
+        // Convert base64 to File
+        const response = await fetch(slipImage);
+        const blob = await response.blob();
+        const file = new File([blob], 'slip.jpg', { type: 'image/jpeg' });
+        await ordersAPI.uploadSlip(order.id, file);
+      }
+
+      clearCart();
+      onOrderComplete(order.id);
+    } catch (error) {
+      console.error('Order error:', error);
+      alert('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
+      setIsSubmitting(false);
+    }
   };
 
   const needsAddress = form.deliveryType !== 'pickup';

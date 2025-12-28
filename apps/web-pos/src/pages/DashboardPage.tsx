@@ -11,15 +11,38 @@ import {
   BellOff,
   RefreshCw
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { OrderStatus } from '../types';
 
 type Tab = 'orders' | 'menu' | 'settings';
 
 export function DashboardPage() {
   const [activeTab, setActiveTab] = useState<Tab>('orders');
-  const { orders, updateOrderStatus, newOrderSound, stopNewOrderSound } = useOrderStore();
+  const { 
+    orders, 
+    updateOrderStatus, 
+    newOrderSound, 
+    stopNewOrderSound,
+    fetchOrders,
+    connectSocket,
+    disconnectSocket,
+    loading
+  } = useOrderStore();
   const logout = useAuthStore((state) => state.logout);
+
+  // Connect Socket.IO and fetch orders on mount
+  useEffect(() => {
+    connectSocket();
+    fetchOrders();
+    
+    // Auto-refresh every 30 seconds
+    const interval = setInterval(fetchOrders, 30000);
+    
+    return () => {
+      clearInterval(interval);
+      disconnectSocket();
+    };
+  }, []);
 
   // Filter orders by status
   const pendingOrders = orders.filter((o) => o.status === 'pending');
@@ -27,8 +50,7 @@ export function DashboardPage() {
   const completedOrders = orders.filter((o) => ['delivered', 'completed'].includes(o.status));
 
   const handleRefresh = () => {
-    // TODO: Fetch from API
-    console.log('Refreshing orders...');
+    fetchOrders();
   };
 
   return (

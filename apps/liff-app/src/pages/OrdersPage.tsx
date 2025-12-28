@@ -1,65 +1,119 @@
-import { useState } from 'react';
-import { Clock, Package, Truck, CheckCircle, ChevronRight, History, AlertCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Clock, Package, Truck, CheckCircle, ChevronRight, History, AlertCircle, RefreshCw } from 'lucide-react';
+import { ordersAPI } from '../lib/api';
 
-// Mock order data - จะเชื่อมกับ backend ภายหลัง
-const MOCK_ORDERS = [
-  {
-    id: 'ORD-20251228-001',
-    date: '28 ธ.ค. 2567 10:30',
-    items: [
-      { name: 'ก๋วยเตี๋ยวหมูแดง', quantity: 2, price: 50 },
-      { name: 'หมูกรอบ', quantity: 1, price: 60 },
-    ],
-    total: 160,
-    status: 'cooking' as OrderStatus,
-    deliveryType: 'delivery',
-  },
-  {
-    id: 'ORD-20251227-003',
-    date: '27 ธ.ค. 2567 12:15',
-    items: [
-      { name: 'ก๋วยเตี๋ยวต้มยำ', quantity: 1, price: 55 },
-    ],
-    total: 55,
-    status: 'completed' as OrderStatus,
-    deliveryType: 'pickup',
-  },
-];
+type OrderStatus = 'pending' | 'confirmed' | 'cooking' | 'ready' | 'delivered' | 'completed' | 'cancelled';
 
-type OrderStatus = 'pending' | 'confirmed' | 'cooking' | 'ready' | 'delivering' | 'completed' | 'cancelled';
+interface OrderItem {
+  productId: string;
+  productName: string;
+  price: number;
+  note?: string;
+  options?: Record<string, string>;
+}
 
-const STATUS_CONFIG = {
+interface Order {
+  id: string;
+  items: OrderItem[];
+  total_amount: number;
+  status: OrderStatus;
+  delivery_type: string;
+  created_at: string;
+  customer_name: string;
+}
+
+const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string; icon: typeof Clock }> = {
   pending: { label: 'รอยืนยัน', color: 'bg-amber-100 text-amber-700', icon: Clock },
   confirmed: { label: 'รับออเดอร์แล้ว', color: 'bg-blue-100 text-blue-700', icon: CheckCircle },
   cooking: { label: 'กำลังปรุง', color: 'bg-orange-100 text-orange-700', icon: Package },
   ready: { label: 'พร้อมรับ/ส่ง', color: 'bg-green-100 text-green-700', icon: Package },
-  delivering: { label: 'กำลังจัดส่ง', color: 'bg-purple-100 text-purple-700', icon: Truck },
+  delivered: { label: 'กำลังจัดส่ง', color: 'bg-purple-100 text-purple-700', icon: Truck },
   completed: { label: 'เสร็จสิ้น', color: 'bg-slate-100 text-slate-600', icon: CheckCircle },
   cancelled: { label: 'ยกเลิก', color: 'bg-red-100 text-red-700', icon: AlertCircle },
 };
 
-interface OrdersPageProps {
-  onViewOrderStatus?: (orderId: string) => void;
-}
-
-export function OrdersPage({ onViewOrderStatus }: OrdersPageProps) {
+export function OrdersPage() {
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedFilter, setSelectedFilter] = useState<'active' | 'history'>('active');
 
-  const activeOrders = MOCK_ORDERS.filter(o => 
-    ['pending', 'confirmed', 'cooking', 'ready', 'delivering'].includes(o.status)
+  // Get LINE user ID from localStorage
+  const lineUserId = localStorage.getItem('liff_user_id');
+
+  // Fetch orders
+  const fetchOrders = async () => {
+    if (!lineUserId) {
+      setLoading(false);
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const data = await ordersAPI.getByUser(lineUserId);
+      setOrders(data);
+    } catch (error) {
+      console.error('Failed to fetch orders:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrders();
+    
+    // Poll for updates every 30 seconds
+    const interval = setInterval(fetchOrders, 30000);
+    return () => clearInterval(interval);
+  }, [lineUserId]);
+
+  const activeOrders = orders.filter(o => 
+    ['pending', 'confirmed', 'cooking', 'ready', 'delivered'].includes(o.status)
   );
-  const historyOrders = MOCK_ORDERS.filter(o => 
+  const historyOrders = orders.filter(o => 
     ['completed', 'cancelled'].includes(o.status)
   );
 
   const displayOrders = selectedFilter === 'active' ? activeOrders : historyOrders;
 
+  // Format date
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('th-TH', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  // Parse items (may be JSON string from API)
+  const parseItems = (items: OrderItem[] | string): OrderItem[] => {
+    if (typeof items === 'string') {
+      try {
+        return JSON.parse(items);
+      } catch {
+        return [];
+      }
+    }
+    return items;
+  };
+
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="text-center mb-4">
-        <h2 className="text-xl font-bold text-slate-800">ออเดอร์ของฉัน</h2>
-        <p className="text-sm text-slate-500">ติดตามสถานะและดูประวัติการสั่งซื้อ</p>
+      <div className="flex items-center justify-between mb-4">
+        <div className="text-center flex-1">
+          <h2 className="text-xl font-bold text-slate-800">ออเดอร์ของฉัน</h2>
+          <p className="text-sm text-slate-500">ติดตามสถานะและดูประวัติการสั่งซื้อ</p>
+        </div>
+        <button 
+          onClick={fetchOrders}
+          disabled={loading}
+          className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200"
+        >
+          <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
+        </button>
       </div>
 
       {/* Filter Tabs */}
@@ -93,24 +147,40 @@ export function OrdersPage({ onViewOrderStatus }: OrdersPageProps) {
         </button>
       </div>
 
+      {/* Loading */}
+      {loading && (
+        <div className="text-center py-8">
+          <RefreshCw size={24} className="animate-spin mx-auto text-brand-600" />
+          <p className="text-sm text-slate-500 mt-2">กำลังโหลด...</p>
+        </div>
+      )}
+
+      {/* Not logged in */}
+      {!lineUserId && !loading && (
+        <div className="text-center py-12 bg-amber-50 rounded-2xl border border-amber-200">
+          <p className="text-amber-700 font-medium">⚠️ กรุณาเข้าสู่ระบบผ่าน LINE</p>
+          <p className="text-amber-600 text-sm mt-1">เพื่อดูประวัติการสั่งซื้อของคุณ</p>
+        </div>
+      )}
+
       {/* Orders List */}
-      {displayOrders.length > 0 ? (
+      {!loading && lineUserId && displayOrders.length > 0 && (
         <div className="space-y-3">
           {displayOrders.map((order) => {
-            const statusConfig = STATUS_CONFIG[order.status];
+            const statusConfig = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
             const StatusIcon = statusConfig.icon;
+            const items = parseItems(order.items);
 
             return (
-              <button
+              <div
                 key={order.id}
-                onClick={() => onViewOrderStatus?.(order.id)}
-                className="w-full bg-white rounded-2xl p-4 shadow-sm border border-slate-100 text-left active:scale-[0.98] transition-transform"
+                className="w-full bg-white rounded-2xl p-4 shadow-sm border border-slate-100"
               >
                 {/* Order Header */}
                 <div className="flex items-center justify-between mb-3">
                   <div>
                     <p className="text-xs text-slate-500">{order.id}</p>
-                    <p className="text-xs text-slate-400">{order.date}</p>
+                    <p className="text-xs text-slate-400">{formatDate(order.created_at)}</p>
                   </div>
                   <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${statusConfig.color}`}>
                     <StatusIcon size={14} />
@@ -120,35 +190,38 @@ export function OrdersPage({ onViewOrderStatus }: OrdersPageProps) {
 
                 {/* Order Items */}
                 <div className="border-t border-slate-100 pt-3 mb-3">
-                  {order.items.map((item, idx) => (
+                  {items.slice(0, 3).map((item, idx) => (
                     <div key={idx} className="flex justify-between text-sm text-slate-600 mb-1">
-                      <span>{item.name} x{item.quantity}</span>
-                      <span>฿{item.price * item.quantity}</span>
+                      <span className="truncate flex-1">{item.productName}</span>
+                      <span className="ml-2">฿{item.price}</span>
                     </div>
                   ))}
+                  {items.length > 3 && (
+                    <p className="text-xs text-slate-400">+{items.length - 3} รายการอื่น</p>
+                  )}
                 </div>
 
                 {/* Order Footer */}
                 <div className="flex items-center justify-between pt-2 border-t border-slate-100">
                   <div className="flex items-center gap-2">
                     <span className={`text-xs px-2 py-0.5 rounded-full ${
-                      order.deliveryType === 'delivery' 
-                        ? 'bg-blue-50 text-blue-600' 
-                        : 'bg-green-50 text-green-600'
+                      order.delivery_type === 'pickup' 
+                        ? 'bg-green-50 text-green-600' 
+                        : 'bg-blue-50 text-blue-600'
                     }`}>
-                      {order.deliveryType === 'delivery' ? '🚗 จัดส่ง' : '🏪 รับเอง'}
+                      {order.delivery_type === 'pickup' ? '🏪 รับเอง' : '🚗 จัดส่ง'}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-brand-700">฿{order.total}</span>
-                    <ChevronRight size={18} className="text-slate-400" />
-                  </div>
+                  <span className="font-bold text-brand-700">฿{order.total_amount}</span>
                 </div>
-              </button>
+              </div>
             );
           })}
         </div>
-      ) : (
+      )}
+
+      {/* Empty State */}
+      {!loading && lineUserId && displayOrders.length === 0 && (
         <div className="text-center py-12 bg-slate-50 rounded-2xl">
           <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center mx-auto mb-3">
             {selectedFilter === 'active' ? (
@@ -172,7 +245,7 @@ export function OrdersPage({ onViewOrderStatus }: OrdersPageProps) {
         </div>
       )}
 
-      {/* Status Legend (for active orders) */}
+      {/* Status Legend */}
       {selectedFilter === 'active' && activeOrders.length > 0 && (
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
           <p className="text-sm text-blue-800 font-medium mb-2">📊 สถานะออเดอร์</p>

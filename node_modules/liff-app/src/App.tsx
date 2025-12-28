@@ -38,6 +38,10 @@ function App() {
       if (success && isLoggedIn()) {
         const userProfile = await getProfile();
         setProfile(userProfile);
+        // Save user ID to localStorage for orders tracking
+        if (userProfile?.userId) {
+          localStorage.setItem('liff_user_id', userProfile.userId);
+        }
       }
     }
     init();
