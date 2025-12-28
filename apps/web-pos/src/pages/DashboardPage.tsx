@@ -21,12 +21,13 @@ export function DashboardPage() {
   const { 
     orders, 
     updateOrderStatus, 
-    newOrderSound, 
-    stopNewOrderSound,
+    soundEnabled,
+    isPlaying,
+    toggleSound,
+    stopSound,
     fetchOrders,
     connectSocket,
     disconnectSocket,
-    loading
   } = useOrderStore();
   const logout = useAuthStore((state) => state.logout);
 
@@ -108,16 +109,29 @@ export function DashboardPage() {
               <div className="flex items-center gap-3">
                 {/* Sound Toggle */}
                 <button
-                  onClick={stopNewOrderSound}
+                  onClick={() => {
+                    // เปิด/ปิดเสียง
+                    toggleSound();
+                  }}
                   className={`p-3 rounded-xl transition-colors ${
-                    newOrderSound 
-                      ? 'bg-red-100 text-red-600 animate-pulse' 
-                      : 'bg-slate-100 text-slate-600'
-                  }`}
-                  title={newOrderSound ? 'ปิดเสียง' : 'เสียงแจ้งเตือน'}
+                    soundEnabled 
+                      ? 'bg-green-100 text-green-600' 
+                      : 'bg-slate-100 text-slate-400'
+                  } ${isPlaying ? 'animate-pulse ring-2 ring-red-400' : ''}`}
+                  title={soundEnabled ? 'เสียงเปิดอยู่ (คลิกเพื่อปิด)' : 'เสียงปิดอยู่ (คลิกเพื่อเปิด)'}
                 >
-                  {newOrderSound ? <BellOff size={20} /> : <Bell size={20} />}
+                  {soundEnabled ? <Bell size={20} /> : <BellOff size={20} />}
                 </button>
+                
+                {/* Stop Playing Sound */}
+                {isPlaying && (
+                  <button
+                    onClick={stopSound}
+                    className="px-3 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600 text-sm font-medium animate-pulse"
+                  >
+                    หยุดเสียง
+                  </button>
+                )}
                 
                 {/* Refresh */}
                 <button
