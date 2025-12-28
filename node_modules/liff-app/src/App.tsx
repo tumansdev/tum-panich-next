@@ -103,16 +103,8 @@ function App() {
 
   return (
     <div className="min-h-screen bg-amber-50">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 h-14 bg-white/95 backdrop-blur-md flex items-center justify-center z-50 border-b border-brand-100 shadow-sm">
-        <img src="/images/logo.png" alt="ตั้มพานิช" className="h-10 w-auto" />
-      </header>
-
-      {/* Spacer for fixed header */}
-      <div className="h-14" />
-
-      {/* Main Content */}
-      <main className="p-4 pb-24">
+      {/* Main Content - No Header */}
+      <main className="p-4 pt-6 pb-24">
         {view === 'main' && (
           <>
             {activeTab === 'home' && (
