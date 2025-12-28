@@ -107,6 +107,25 @@ export function DashboardPage() {
                 <p className="text-slate-500">รวม {orders.length} ออเดอร์</p>
               </div>
               <div className="flex items-center gap-3">
+                {/* Test Sound - เพื่อ unlock browser autoplay */}
+                <button
+                  onClick={() => {
+                    // เล่นเสียงทดสอบเพื่อ unlock browser autoplay
+                    const audio = new Audio('/sounds/notification.mp3');
+                    audio.volume = 0.5;
+                    audio.play().then(() => {
+                      setTimeout(() => audio.pause(), 1000);
+                      alert('✅ เสียงทำงานปกติ! เมื่อมีออเดอร์ใหม่จะได้ยินเสียงแจ้งเตือน');
+                    }).catch((e) => {
+                      console.error('Audio error:', e);
+                      alert('❌ ไม่สามารถเล่นเสียงได้ กรุณาตรวจสอบ:\n1. เปิดเสียงลำโพง\n2. ไม่ได้ปิดเสียงหน้าเว็บ');
+                    });
+                  }}
+                  className="px-3 py-2 bg-amber-500 text-white rounded-xl hover:bg-amber-600 text-sm font-medium"
+                >
+                  🔊 ทดสอบเสียง
+                </button>
+
                 {/* Sound Toggle */}
                 <button
                   onClick={() => {
