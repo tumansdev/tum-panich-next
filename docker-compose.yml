@@ -60,6 +60,9 @@ services:
     build:
       context: ./apps/liff-app
       dockerfile: Dockerfile
+      args:
+        - VITE_LIFF_ID=2008553802-0TOhKu6u
+        - VITE_API_URL=https://tumpanich.com
     container_name: tum_liff_app
     restart: always
     networks:

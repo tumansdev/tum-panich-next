@@ -2,6 +2,14 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Build arguments for Vite env vars
+ARG VITE_LIFF_ID
+ARG VITE_API_URL=https://tumpanich.com
+
+# Set env vars for build
+ENV VITE_LIFF_ID=$VITE_LIFF_ID
+ENV VITE_API_URL=$VITE_API_URL
+
 COPY package.json package-lock.json* ./
 RUN npm install
 
