@@ -5,7 +5,7 @@ import path from 'path'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/',  // Root path because nginx proxy strips /admin/
+  base: '/admin/',  // Assets will be loaded from /admin/assets/
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
