@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import { ChevronRight, Sparkles, Search, Bell, SlidersHorizontal, Flame } from 'lucide-react';
-import { categories, menuItems } from '../data/menu';
+import { useState, useEffect } from 'react';
+import { ChevronRight, Sparkles, Search, Bell, SlidersHorizontal, Flame, RefreshCw } from 'lucide-react';
 import { ProductCard } from '../components/ProductCard';
 import { Product } from '../types';
+import { useMenu } from '../hooks/useMenu';
 
 interface HomePageProps {
   onNavigate: (tab: 'menu' | 'cart') => void;
@@ -10,6 +10,7 @@ interface HomePageProps {
 }
 
 export function HomePage({ onNavigate, onSelectProduct }: HomePageProps) {
+  const { menuItems, categories, loading, error, refetch } = useMenu();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   
@@ -22,10 +23,59 @@ export function HomePage({ onNavigate, onSelectProduct }: HomePageProps) {
         const matchSearch = !searchQuery.trim() || 
           item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           item.description?.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchCategory = !activeCategory || item.categoryId === activeCategory;
+        const matchCategory = !activeCategory || item.category === activeCategory || item.categoryId === activeCategory;
         return matchSearch && matchCategory;
       })
     : null;
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="space-y-5 -mt-4">
+        {/* Hero Section Skeleton */}
+        <div className="relative bg-gradient-to-br from-brand-600 via-brand-500 to-brand-600 -mx-4 px-4 pt-4 pb-8 rounded-b-[2.5rem] shadow-lg">
+          <div className="flex items-center justify-between mb-6">
+            <div className="w-12 h-12 rounded-xl bg-white/20 animate-pulse" />
+            <div className="w-10 h-10 rounded-full bg-white/20 animate-pulse" />
+          </div>
+          <div className="space-y-2 mb-5">
+            <div className="h-4 w-32 bg-white/20 rounded animate-pulse" />
+            <div className="h-8 w-48 bg-white/20 rounded animate-pulse" />
+          </div>
+          <div className="h-12 bg-white/20 rounded-full animate-pulse" />
+        </div>
+        
+        {/* Category Pills Skeleton */}
+        <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="h-10 w-24 bg-slate-200 rounded-full animate-pulse flex-shrink-0" />
+          ))}
+        </div>
+        
+        {/* Featured Items Skeleton */}
+        <div className="grid grid-cols-2 gap-3">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="bg-slate-100 rounded-xl h-48 animate-pulse" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-600 mb-4">{error}</p>
+        <button 
+          onClick={refetch}
+          className="px-4 py-2 bg-brand-600 text-white rounded-lg"
+        >
+          ลองใหม่
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5 -mt-4">
@@ -38,8 +88,11 @@ export function HomePage({ onNavigate, onSelectProduct }: HomePageProps) {
             alt="ตั้มพานิช" 
             className="w-12 h-12 rounded-xl shadow-md border-2 border-white/20" 
           />
-          <button className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
-            <Bell size={20} className="text-white" />
+          <button 
+            onClick={refetch}
+            className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center"
+          >
+            <RefreshCw size={20} className="text-white" />
           </button>
         </div>
         
@@ -145,15 +198,21 @@ export function HomePage({ onNavigate, onSelectProduct }: HomePageProps) {
             </button>
           </div>
           
-          <div className="grid grid-cols-2 gap-3">
-            {featuredItems.map((item) => (
-              <ProductCard 
-                key={item.id} 
-                product={item}
-                onSelect={onSelectProduct}
-              />
-            ))}
-          </div>
+          {featuredItems.length > 0 ? (
+            <div className="grid grid-cols-2 gap-3">
+              {featuredItems.map((item) => (
+                <ProductCard 
+                  key={item.id} 
+                  product={item}
+                  onSelect={onSelectProduct}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 bg-slate-50 rounded-xl">
+              <p className="text-slate-500">ยังไม่มีเมนู</p>
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -1,9 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { Plus, Edit2, Trash2, Image, Save, X, Search, Upload, RefreshCw, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Plus, Edit2, Trash2, Image, Save, X, Search, Upload, RefreshCw, ToggleLeft, ToggleRight, FolderPlus } from 'lucide-react';
 import { MenuItem } from '../types';
 import { menuAPI, categoriesAPI } from '../lib/api';
 
-// Category type
 interface Category {
   id: string;
   name: string;
@@ -21,9 +20,14 @@ export function MenuPage() {
   const [editItem, setEditItem] = useState<MenuItem | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   
+  // Category mode
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [newCategory, setNewCategory] = useState({ id: '', name: '', icon: '📦' });
+  
   // Image upload
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -47,7 +51,18 @@ export function MenuPage() {
         menuAPI.getAll(),
         categoriesAPI.getAll(),
       ]);
-      setMenuItems(menuData);
+      // Map API response
+      const mapped = menuData.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        description: item.description,
+        price: parseFloat(item.price),
+        imageUrl: item.image_url,
+        categoryId: item.category_id,
+        available: item.available,
+        isSpecial: item.is_special,
+      }));
+      setMenuItems(mapped);
       setCategories([{ id: 'all', name: 'ทั้งหมด' }, ...catData]);
     } catch (error) {
       console.error('Failed to fetch data:', error);
@@ -97,6 +112,8 @@ export function MenuPage() {
       categoryId: item.categoryId,
       available: item.available,
     });
+    setPreviewImage(item.imageUrl || null);
+    setImageFile(null);
     setIsCreating(false);
   };
 
@@ -111,14 +128,36 @@ export function MenuPage() {
       categoryId: 'rice',
       available: true,
     });
+    setPreviewImage(null);
+    setImageFile(null);
     setIsCreating(true);
+  };
+
+  // Handle image selection in modal
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = () => setPreviewImage(reader.result as string);
+      reader.readAsDataURL(file);
+    }
   };
 
   // Save (create or update)
   const handleSave = async () => {
+    if (!formData.name.trim()) {
+      alert('กรุณากรอกชื่อเมนู');
+      return;
+    }
+
+    setUploading(true);
     try {
+      let savedItem: any;
+      
       if (isCreating) {
-        const newItem = await menuAPI.create({
+        savedItem = await menuAPI.create({
           id: formData.id,
           name: formData.name,
           description: formData.description,
@@ -126,23 +165,53 @@ export function MenuPage() {
           category_id: formData.categoryId,
           available: formData.available,
         });
-        setMenuItems((prev) => [...prev, { ...newItem, categoryId: newItem.category_id }]);
       } else if (editItem) {
-        const updated = await menuAPI.update(editItem.id, {
+        savedItem = await menuAPI.update(editItem.id, {
           name: formData.name,
           description: formData.description,
           price: formData.price,
           category_id: formData.categoryId,
           available: formData.available,
         });
+      }
+
+      // Upload image if selected
+      if (imageFile && savedItem) {
+        const uploadResult = await menuAPI.uploadImage(savedItem.id, imageFile);
+        savedItem = uploadResult.item;
+      }
+
+      // Update state
+      if (isCreating) {
+        setMenuItems((prev) => [...prev, {
+          id: savedItem.id,
+          name: savedItem.name,
+          description: savedItem.description,
+          price: parseFloat(savedItem.price),
+          imageUrl: savedItem.image_url,
+          categoryId: savedItem.category_id,
+          available: savedItem.available,
+        }]);
+      } else {
         setMenuItems((prev) =>
-          prev.map((item) => (item.id === editItem.id ? { ...item, ...updated, categoryId: updated.category_id } : item))
+          prev.map((item) => item.id === savedItem.id ? {
+            ...item,
+            name: savedItem.name,
+            description: savedItem.description,
+            price: parseFloat(savedItem.price),
+            imageUrl: savedItem.image_url,
+            categoryId: savedItem.category_id,
+            available: savedItem.available,
+          } : item)
         );
       }
+      
       handleCancel();
     } catch (error) {
       console.error('Failed to save:', error);
       alert('บันทึกไม่สำเร็จ');
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -150,22 +219,26 @@ export function MenuPage() {
   const handleCancel = () => {
     setEditItem(null);
     setIsCreating(false);
+    setPreviewImage(null);
+    setImageFile(null);
   };
 
-  // Image upload
-  const handleImageUpload = async (id: string, file: File) => {
-    setUploading(true);
+  // Add category
+  const handleAddCategory = async () => {
+    if (!newCategory.id.trim() || !newCategory.name.trim()) {
+      alert('กรุณากรอกรหัสและชื่อหมวดหมู่');
+      return;
+    }
+    
     try {
-      const result = await menuAPI.uploadImage(id, file);
-      setMenuItems((prev) =>
-        prev.map((item) => (item.id === id ? { ...item, imageUrl: result.item.image_url } : item))
-      );
-      alert('อัพโหลดรูปสำเร็จ!');
+      const created = await categoriesAPI.create(newCategory);
+      setCategories((prev) => [...prev, created]);
+      setNewCategory({ id: '', name: '', icon: '📦' });
+      setShowCategoryModal(false);
+      alert('เพิ่มหมวดหมู่สำเร็จ!');
     } catch (error) {
-      console.error('Failed to upload:', error);
-      alert('อัพโหลดไม่สำเร็จ');
-    } finally {
-      setUploading(false);
+      console.error('Failed to add category:', error);
+      alert('เพิ่มหมวดหมู่ไม่สำเร็จ');
     }
   };
 
@@ -175,7 +248,7 @@ export function MenuPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">📋 จัดการเมนู</h1>
-          <p className="text-sm text-slate-500">เพิ่ม แก้ไข ลบ เมนูอาหาร</p>
+          <p className="text-sm text-slate-500">เพิ่ม แก้ไข ลบ เมนูอาหาร และหมวดหมู่</p>
         </div>
         <div className="flex gap-2">
           <button
@@ -184,6 +257,13 @@ export function MenuPage() {
             className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200"
           >
             <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
+          </button>
+          <button
+            onClick={() => setShowCategoryModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600"
+          >
+            <FolderPlus size={20} />
+            หมวดหมู่
           </button>
           <button
             onClick={handleCreate}
@@ -255,24 +335,6 @@ export function MenuPage() {
                     <Image size={40} />
                   </div>
                 )}
-                {/* Upload button */}
-                <label className="absolute bottom-2 right-2 p-2 bg-white rounded-full shadow cursor-pointer hover:bg-slate-100">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    disabled={uploading}
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleImageUpload(item.id, file);
-                    }}
-                  />
-                  {uploading ? (
-                    <RefreshCw size={16} className="animate-spin" />
-                  ) : (
-                    <Upload size={16} />
-                  )}
-                </label>
               </div>
 
               {/* Info */}
@@ -318,10 +380,10 @@ export function MenuPage() {
         </div>
       )}
 
-      {/* Edit Modal */}
+      {/* Edit/Create Modal */}
       {(editItem || isCreating) && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold">
                 {isCreating ? '➕ เพิ่มเมนู' : '✏️ แก้ไขเมนู'}
@@ -332,13 +394,47 @@ export function MenuPage() {
             </div>
 
             <div className="space-y-4">
+              {/* Image Upload in Modal */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">ชื่อเมนู</label>
+                <label className="block text-sm font-medium text-slate-700 mb-2">รูปภาพ</label>
+                <div className="relative h-40 bg-slate-100 rounded-lg overflow-hidden border-2 border-dashed border-slate-300">
+                  {previewImage ? (
+                    <img
+                      src={previewImage}
+                      alt="Preview"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-slate-400">
+                      <Image size={40} />
+                      <p className="text-sm mt-2">คลิกเพื่อเลือกรูป</p>
+                    </div>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageSelect}
+                    className="absolute inset-0 opacity-0 cursor-pointer"
+                  />
+                  {previewImage && (
+                    <button
+                      onClick={() => { setPreviewImage(null); setImageFile(null); }}
+                      className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full"
+                    >
+                      <X size={16} />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">ชื่อเมนู *</label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500"
+                  placeholder="เช่น ข้าวหมูแดง"
                 />
               </div>
 
@@ -349,6 +445,7 @@ export function MenuPage() {
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows={2}
                   className="w-full px-4 py-2 border border-slate-200 rounded-lg resize-none focus:ring-2 focus:ring-brand-500"
+                  placeholder="อธิบายเมนู..."
                 />
               </div>
 
@@ -393,16 +490,100 @@ export function MenuPage() {
             <div className="flex gap-3 mt-6">
               <button
                 onClick={handleCancel}
+                disabled={uploading}
                 className="flex-1 px-4 py-2 border border-slate-200 rounded-lg hover:bg-slate-50"
               >
                 ยกเลิก
               </button>
               <button
                 onClick={handleSave}
+                disabled={uploading}
                 className="flex-1 px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 flex items-center justify-center gap-2"
               >
-                <Save size={18} />
-                บันทึก
+                {uploading ? (
+                  <RefreshCw size={18} className="animate-spin" />
+                ) : (
+                  <Save size={18} />
+                )}
+                {uploading ? 'กำลังบันทึก...' : 'บันทึก'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Category Modal */}
+      {showCategoryModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold">📂 เพิ่มหมวดหมู่</h2>
+              <button onClick={() => setShowCategoryModal(false)} className="p-2 hover:bg-slate-100 rounded-lg">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">รหัสหมวดหมู่ *</label>
+                <input
+                  type="text"
+                  value={newCategory.id}
+                  onChange={(e) => setNewCategory({ ...newCategory, id: e.target.value.toLowerCase().replace(/\s/g, '-') })}
+                  className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500"
+                  placeholder="เช่น appetizer"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">ชื่อหมวดหมู่ *</label>
+                <input
+                  type="text"
+                  value={newCategory.name}
+                  onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })}
+                  className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500"
+                  placeholder="เช่น อาหารเรียกน้ำย่อย"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">ไอคอน (Emoji)</label>
+                <input
+                  type="text"
+                  value={newCategory.icon}
+                  onChange={(e) => setNewCategory({ ...newCategory, icon: e.target.value })}
+                  className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500 text-center text-2xl"
+                  placeholder="📦"
+                  maxLength={2}
+                />
+              </div>
+
+              {/* Existing Categories */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">หมวดหมู่ที่มีอยู่:</label>
+                <div className="flex flex-wrap gap-2">
+                  {categories.filter(c => c.id !== 'all').map(cat => (
+                    <span key={cat.id} className="px-3 py-1 bg-slate-100 rounded-full text-sm">
+                      {cat.icon} {cat.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setShowCategoryModal(false)}
+                className="flex-1 px-4 py-2 border border-slate-200 rounded-lg hover:bg-slate-50"
+              >
+                ยกเลิก
+              </button>
+              <button
+                onClick={handleAddCategory}
+                className="flex-1 px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 flex items-center justify-center gap-2"
+              >
+                <FolderPlus size={18} />
+                เพิ่มหมวดหมู่
               </button>
             </div>
           </div>
