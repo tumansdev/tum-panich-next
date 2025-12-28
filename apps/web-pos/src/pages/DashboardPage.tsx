@@ -111,7 +111,7 @@ export function DashboardPage() {
                 <button
                   onClick={() => {
                     // เล่นเสียงทดสอบเพื่อ unlock browser autoplay
-                    const audio = new Audio('/sounds/notification.mp3');
+                    const audio = new Audio('/admin/sounds/notification.mp3');
                     audio.volume = 0.5;
                     audio.play().then(() => {
                       setTimeout(() => audio.pause(), 1000);

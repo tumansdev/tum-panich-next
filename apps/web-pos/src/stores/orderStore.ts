@@ -29,7 +29,7 @@ interface OrderState {
 // Create notification audio element
 let notificationAudio: HTMLAudioElement | null = null;
 if (typeof window !== 'undefined') {
-  notificationAudio = new Audio('/sounds/notification.mp3');
+  notificationAudio = new Audio('/admin/sounds/notification.mp3');
   notificationAudio.loop = true;
 }
 
