@@ -1,6 +1,6 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import { createServer } from 'http';
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import cors from 'cors';
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
@@ -28,24 +28,25 @@ const pool = new Pool({
 });
 
 // Routes
-app.get('/', (req, res) => {
+app.get('/', (_req: Request, res: Response) => {
   res.send('Tum Panich API is running');
 });
 
-app.get('/api/health', async (req, res) => {
+app.get('/api/health', async (_req: Request, res: Response) => {
   try {
     const client = await pool.connect();
     const result = await client.query('SELECT NOW()');
     client.release();
     res.json({ status: 'ok', db_time: result.rows[0].now });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error(err);
-    res.status(500).json({ status: 'error', message: err.message });
+    const message = err instanceof Error ? err.message : 'Unknown error';
+    res.status(500).json({ status: 'error', message });
   }
 });
 
 // Socket.io
-io.on('connection', (socket) => {
+io.on('connection', (socket: Socket) => {
   console.log('Client connected:', socket.id);
 
   socket.on('disconnect', () => {
@@ -53,7 +54,7 @@ io.on('connection', (socket) => {
   });
   
   // Example: Order Status Update
-  socket.on('join_order', (orderId) => {
+  socket.on('join_order', (orderId: string) => {
       socket.join(`order_${orderId}`);
   });
 });

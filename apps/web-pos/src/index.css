@@ -1,28 +1,67 @@
+@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  body {
-    @apply bg-slate-50 text-slate-900 font-sans antialiased;
+:root {
+  --brand-50: #fef3f2;
+  --brand-100: #fee4e2;
+  --brand-200: #ffcdc8;
+  --brand-300: #fea9a0;
+  --brand-400: #fb7268;
+  --brand-500: #f44336;
+  --brand-600: #a40b0b;
+  --brand-700: #8b0a0a;
+  --brand-800: #730d0d;
+  --brand-900: #601010;
+}
+
+* {
+  font-family: 'Prompt', sans-serif;
+}
+
+body {
+  @apply bg-slate-100 text-slate-900 antialiased;
+}
+
+/* Button Styles */
+.btn-primary {
+  @apply bg-gradient-to-r from-brand-600 to-brand-700 hover:from-brand-700 hover:to-brand-800 text-white font-medium py-2 px-4 rounded-xl shadow-sm transition-all;
+}
+
+/* Glass Card */
+.glass-card {
+  @apply bg-white rounded-xl shadow-sm border border-slate-100;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-slate-100 rounded-full;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-300 rounded-full hover:bg-slate-400;
+}
+
+/* Animation */
+@keyframes pulse-border {
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(164, 11, 11, 0.4);
+  }
+
+  50% {
+    box-shadow: 0 0 0 8px rgba(164, 11, 11, 0);
   }
 }
 
-@layer components {
-  /* Glassmorphism Card */
-  .glass-card {
-    @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-lg rounded-xl;
-  }
-  
-  .glass-panel {
-    @apply bg-white/90 backdrop-blur-xl border border-white/50 shadow-sm rounded-xl;
-  }
-
-  .btn-primary {
-    @apply bg-brand-700 hover:bg-brand-800 text-white font-medium py-2 px-4 rounded-xl transition-all shadow-md hover:shadow-lg active:scale-95;
-  }
-
-  .btn-secondary {
-    @apply bg-white hover:bg-slate-50 text-brand-700 border border-brand-200 font-medium py-2 px-4 rounded-xl transition-all;
-  }
+.animate-pulse-border {
+  animation: pulse-border 2s infinite;
 }
