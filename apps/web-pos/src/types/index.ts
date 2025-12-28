@@ -43,10 +43,13 @@ export interface MenuItem {
   name: string;
   description?: string;
   price: number;
-  image?: string;
-  category: string;
+  imageUrl?: string;       // Changed from image
+  image_url?: string;      // API response format
+  categoryId: string;      // Changed from category
+  category_id?: string;    // API response format
   available: boolean;
   isSpecial?: boolean;
+  is_special?: boolean;    // API response format
 }
 
 export interface Category {
