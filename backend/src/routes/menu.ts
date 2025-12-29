@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import pool from '../db';
 import { upload, handleImageUpload } from '../middleware/upload';
+import { authMiddleware } from '../middleware/auth';
 
 const router = Router();
 
@@ -40,8 +41,8 @@ router.get('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/menu - Create menu item (Admin)
-router.post('/', async (req: Request, res: Response) => {
+// POST /api/menu - Create menu item (Admin - Protected)
+router.post('/', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { id, name, description, price, image_url, category_id, options, available, is_special, sort_order } = req.body;
     
@@ -58,8 +59,8 @@ router.post('/', async (req: Request, res: Response) => {
   }
 });
 
-// PUT /api/menu/:id - Update menu item (Admin)
-router.put('/:id', async (req: Request, res: Response) => {
+// PUT /api/menu/:id - Update menu item (Admin - Protected)
+router.put('/:id', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { name, description, price, image_url, category_id, options, available, is_special, sort_order } = req.body;
@@ -91,8 +92,8 @@ router.put('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// DELETE /api/menu/:id - Delete menu item (Admin)
-router.delete('/:id', async (req: Request, res: Response) => {
+// DELETE /api/menu/:id - Delete menu item (Admin - Protected)
+router.delete('/:id', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const result = await pool.query(
@@ -111,8 +112,9 @@ router.delete('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/menu/:id/upload - Upload menu image (Admin)
+// POST /api/menu/:id/upload - Upload menu image (Admin - Protected)
 router.post('/:id/upload', 
+  authMiddleware,
   upload.single('image'),
   handleImageUpload('menu'),
   async (req: Request, res: Response) => {
@@ -141,8 +143,8 @@ router.post('/:id/upload',
   }
 );
 
-// PUT /api/menu/:id/toggle - Toggle availability (Admin)
-router.put('/:id/toggle', async (req: Request, res: Response) => {
+// PUT /api/menu/:id/toggle - Toggle availability (Admin - Protected)
+router.put('/:id/toggle', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const result = await pool.query(

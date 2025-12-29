@@ -1,10 +1,13 @@
 import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
+import express from 'express';
 
 const router = Router();
 
 const CHANNEL_SECRET = process.env.LINE_CHANNEL_SECRET || '';
 const CHANNEL_TOKEN = process.env.LINE_CHANNEL_ACCESS_TOKEN || '';
+const LIFF_URL = process.env.LIFF_URL || 'https://liff.line.me/YOUR_LIFF_ID';
+const SHOP_PHONE = '084-115-8342';
 
 interface LineEvent {
   type: string;
@@ -137,7 +140,7 @@ function createWelcomeFlexMessage() {
             action: {
               type: 'uri',
               label: '🛒 สั่งอาหาร',
-              uri: 'https://liff.line.me/2008553802-0TOhKu6u',
+              uri: LIFF_URL,
             },
           },
           {
@@ -146,7 +149,7 @@ function createWelcomeFlexMessage() {
             action: {
               type: 'uri',
               label: '📞 โทร',
-              uri: 'tel:0812345678',
+              uri: `tel:${SHOP_PHONE.replace(/-/g, '')}`,
             },
           },
         ],
@@ -168,23 +171,23 @@ async function handleTextMessage(event: LineEvent): Promise<void> {
   if (text.includes('สวัสดี') || text.includes('hello') || text === 'hi') {
     await replyMessage(replyToken, [{
       type: 'text',
-      text: '🍜 สวัสดีค่ะ ยินดีต้อนรับสู่ร้านตั้มพานิช!\n\n👉 สั่งอาหาร: https://liff.line.me/2008553802-0TOhKu6u\n📞 โทร: 081-234-5678',
+      text: `🍜 สวัสดีค่ะ ยินดีต้อนรับสู่ร้านตั้มพานิช!\n\n👉 สั่งอาหาร: ${LIFF_URL}\n📞 โทร: ${SHOP_PHONE}`,
     }]);
   } else if (text.includes('เมนู') || text.includes('สั่ง') || text.includes('อาหาร')) {
     await replyMessage(replyToken, [{
       type: 'text',
-      text: '🍜 สั่งอาหารได้ที่นี่เลยค่ะ!\n\n👉 https://liff.line.me/2008553802-0TOhKu6u',
+      text: `🍜 สั่งอาหารได้ที่นี่เลยค่ะ!\n\n👉 ${LIFF_URL}`,
     }]);
   } else if (text.includes('ที่อยู่') || text.includes('แผนที่') || text.includes('ร้าน')) {
     await replyMessage(replyToken, [{
       type: 'text',
-      text: '📍 ร้านตั้มพานิช\n🏠 อ.อ่างทอง จ.อ่างทอง\n\n📞 โทร: 081-234-5678\n🕘 เปิด: 07:00 - 19:00 น.',
+      text: `📍 ร้านตั้มพานิช\n🏠 อ.อ่างทอง จ.อ่างทอง\n\n📞 โทร: ${SHOP_PHONE}\n🕘 เปิด: 07:00 - 19:00 น.`,
     }]);
   } else {
     // ข้อความทั่วไป
     await replyMessage(replyToken, [{
       type: 'text',
-      text: `สวัสดีค่ะ! ✨\n\nขอบคุณที่ติดต่อร้านตั้มพานิช\nเราจะตอบกลับเร็วที่สุดนะคะ\n\n🍜 สั่งอาหาร: https://liff.line.me/2008553802-0TOhKu6u`,
+      text: `สวัสดีค่ะ! ✨\n\nขอบคุณที่ติดต่อร้านตั้มพานิช\nเราจะตอบกลับเร็วที่สุดนะคะ\n\n🍜 สั่งอาหาร: ${LIFF_URL}`,
     }]);
   }
 }
@@ -205,13 +208,33 @@ async function handleFollowEvent(event: LineEvent): Promise<void> {
 }
 
 /**
- * Webhook endpoint
+ * Webhook endpoint - Uses raw body for signature verification
  */
-router.post('/', async (req: Request, res: Response) => {
-  console.log('Webhook received:', JSON.stringify(req.body, null, 2));
+router.post('/', express.raw({ type: 'application/json' }), async (req: Request, res: Response) => {
+  // Verify LINE signature for security
+  const signature = req.headers['x-line-signature'] as string;
+  const rawBody = req.body.toString();
   
-  const body: LineWebhookBody = req.body;
+  // Skip verification in development or if no secret
+  if (process.env.NODE_ENV !== 'development' && CHANNEL_SECRET) {
+    if (!signature || !verifySignature(rawBody, signature)) {
+      console.warn('Webhook signature verification failed');
+      return res.status(401).send('Invalid signature');
+    }
+  }
+  
+  // Parse body
+  let body: LineWebhookBody;
+  try {
+    body = JSON.parse(rawBody);
+  } catch {
+    return res.status(400).send('Invalid JSON');
+  }
+  
+  console.log('Webhook received:', JSON.stringify(body, null, 2));
   const events = body.events || [];
+
+  console.log(`Received ${events.length} webhook events`);
 
   console.log(`Received ${events.length} webhook events`);
 

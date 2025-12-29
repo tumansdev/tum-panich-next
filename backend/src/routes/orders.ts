@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import pool from '../db';
 import { upload, handleImageUpload } from '../middleware/upload';
+import { authMiddleware } from '../middleware/auth';
 import { Server } from 'socket.io';
 
 const router = Router();
@@ -138,8 +139,8 @@ router.post('/', async (req: Request, res: Response) => {
   }
 });
 
-// PUT /api/orders/:id/status - Update order status (Admin)
-router.put('/:id/status', async (req: Request, res: Response) => {
+// PUT /api/orders/:id/status - Update order status (Admin - Protected)
+router.put('/:id/status', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { status } = req.body;

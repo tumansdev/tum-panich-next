@@ -14,14 +14,27 @@ import categoriesRoutes from './routes/categories';
 import ordersRoutes, { setIO } from './routes/orders';
 import announcementsRoutes from './routes/announcements';
 import webhookRoutes from './routes/webhook';
+import authRoutes from './routes/auth';
 import pool from './db';
 
 const app = express();
 const httpServer = createServer(app);
+
+// CORS Configuration - Whitelist specific origins
+const ALLOWED_ORIGINS = [
+  'https://tumpanich.com',
+  'https://www.tumpanich.com',
+  'https://admin.tumpanich.com',
+  'https://liff.line.me',
+  process.env.FRONTEND_URL || 'http://localhost:5173',
+  process.env.LIFF_URL || 'http://localhost:5174',
+].filter(Boolean);
+
 const io = new Server(httpServer, {
   cors: {
-    origin: "*",
-    methods: ["GET", "POST", "PUT", "DELETE"]
+    origin: ALLOWED_ORIGINS,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
   }
 });
 
@@ -30,8 +43,21 @@ setIO(io);
 
 const port = process.env.PORT || 3000;
 
-// Middleware
-app.use(cors());
+// CORS Middleware
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    
+    if (ALLOWED_ORIGINS.includes(origin) || process.env.NODE_ENV === 'development') {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -56,13 +82,14 @@ app.get('/api/health', async (_req: Request, res: Response) => {
   }
 });
 
-// API Routes
+// Public API Routes (no auth required)
+app.use('/api/auth', authRoutes);
 app.use('/api/menu', menuRoutes);
 app.use('/api/categories', categoriesRoutes);
 app.use('/api/orders', ordersRoutes);
 app.use('/api/announcements', announcementsRoutes);
 
-// LINE Webhook
+// LINE Webhook (uses raw body parser, must be before JSON parser on this route)
 app.use('/api/webhook', webhookRoutes);
 
 // Socket.IO Connection Handling
@@ -101,6 +128,8 @@ app.use((err: Error, _req: Request, res: Response, _next: express.NextFunction) 
 httpServer.listen(port, () => {
   console.log(`🚀 Server running on port ${port}`);
   console.log(`📁 Uploads directory: ${path.join(process.cwd(), 'uploads')}`);
+  console.log(`🔒 CORS origins: ${ALLOWED_ORIGINS.join(', ')}`);
 });
 
 export { io };
+

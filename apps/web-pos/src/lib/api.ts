@@ -1,15 +1,20 @@
 // API client for Tum Panich Admin Panel
+import { getAuthToken } from '../stores/authStore';
+
 const API_URL = import.meta.env.VITE_API_URL || 'https://tumpanich.com';
 
-// Fetch wrapper with error handling
+// Fetch wrapper with error handling and JWT auth
 async function fetchAPI<T>(
   endpoint: string,
   options?: RequestInit
 ): Promise<T> {
+  const token = getAuthToken();
+  
   const response = await fetch(`${API_URL}${endpoint}`, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options?.headers,
     },
   });

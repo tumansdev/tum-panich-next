@@ -19,7 +19,7 @@ export function OrderStatusPage({ orderId, onBack }: OrderStatusPageProps) {
       closeLiff();
     } else {
       // ถ้าไม่ได้อยู่ใน LINE ให้โทร
-      window.location.href = 'tel:0xxxxxxxxx';
+      window.location.href = 'tel:0841158342';
     }
   };
 
@@ -85,7 +85,7 @@ export function OrderStatusPage({ orderId, onBack }: OrderStatusPageProps) {
             แชท
           </button>
           <a
-            href="tel:0xxxxxxxxx"
+            href="tel:0841158342"
             className="flex-1 bg-white text-brand-600 border border-brand-600 font-medium py-3 rounded-xl flex items-center justify-center gap-2"
           >
             <Phone size={18} />

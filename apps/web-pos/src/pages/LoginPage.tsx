@@ -1,32 +1,22 @@
 import { useState } from 'react';
-import { Lock, Eye, EyeOff } from 'lucide-react';
+import { Lock, User, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
 
 export function LoginPage() {
-  const [pin, setPin] = useState('');
-  const [showPin, setShowPin] = useState(false);
-  const [error, setError] = useState('');
-  const login = useAuthStore((state) => state.login);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const { login, loading, error, clearError } = useAuthStore();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    clearError();
     
-    if (pin.length < 4) {
-      setError('กรุณากรอก PIN 4 หลัก');
+    if (!username || !password) {
       return;
     }
 
-    const success = login(pin);
-    if (!success) {
-      setError('PIN ไม่ถูกต้อง');
-      setPin('');
-    }
-  };
-
-  const handlePinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, '').slice(0, 6);
-    setPin(value);
+    await login(username, password);
   };
 
   return (
@@ -42,26 +32,45 @@ export function LoginPage() {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">
-              รหัส PIN
+              ชื่อผู้ใช้
             </label>
             <div className="relative">
+              <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
-                type={showPin ? 'text' : 'password'}
-                value={pin}
-                onChange={handlePinChange}
-                placeholder="กรอก PIN 4-6 หลัก"
-                className="w-full px-4 py-4 text-center text-2xl tracking-[0.5em] font-mono bg-slate-50 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="กรอกชื่อผู้ใช้"
+                className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
                 autoFocus
+                disabled={loading}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              รหัสผ่าน
+            </label>
+            <div className="relative">
+              <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="กรอกรหัสผ่าน"
+                className="w-full pl-12 pr-12 py-3.5 bg-slate-50 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
+                disabled={loading}
               />
               <button
                 type="button"
-                onClick={() => setShowPin(!showPin)}
+                onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
               >
-                {showPin ? <EyeOff size={20} /> : <Eye size={20} />}
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
           </div>
@@ -74,14 +83,22 @@ export function LoginPage() {
 
           <button
             type="submit"
-            className="w-full bg-gradient-to-r from-brand-600 to-brand-700 hover:from-brand-700 hover:to-brand-800 text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-brand-200 transition-all"
+            disabled={loading || !username || !password}
+            className="w-full bg-gradient-to-r from-brand-600 to-brand-700 hover:from-brand-700 hover:to-brand-800 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-brand-200 transition-all flex items-center justify-center gap-2"
           >
-            เข้าสู่ระบบ
+            {loading ? (
+              <>
+                <Loader2 size={20} className="animate-spin" />
+                กำลังเข้าสู่ระบบ...
+              </>
+            ) : (
+              'เข้าสู่ระบบ'
+            )}
           </button>
         </form>
 
         <p className="text-center text-slate-400 text-xs mt-6">
-          PIN เริ่มต้น: 1234
+          เริ่มต้น: admin / admin123
         </p>
       </div>
     </div>
