@@ -1,10 +1,7 @@
 // API client for Tum Panich LIFF App
-const API_URL = import.meta.env.VITE_API_URL || 'https://tumpanich.com';
+import { MenuItem, Category, Order, CreateOrderRequest, Announcement } from '../types/api';
 
-interface APIResponse<T> {
-  data?: T;
-  error?: string;
-}
+const API_URL = import.meta.env.VITE_API_URL || 'https://tumpanich.com';
 
 // Fetch wrapper with error handling
 async function fetchAPI<T>(
@@ -29,29 +26,29 @@ async function fetchAPI<T>(
 
 // Menu API
 export const menuAPI = {
-  getAll: () => fetchAPI<any[]>('/api/menu'),
-  getById: (id: string) => fetchAPI<any>(`/api/menu/${id}`),
+  getAll: () => fetchAPI<MenuItem[]>('/api/menu'),
+  getById: (id: string) => fetchAPI<MenuItem>(`/api/menu/${id}`),
 };
 
 // Categories API
 export const categoriesAPI = {
-  getAll: () => fetchAPI<any[]>('/api/categories'),
+  getAll: () => fetchAPI<Category[]>('/api/categories'),
 };
 
 // Orders API
 export const ordersAPI = {
-  create: (order: any) =>
-    fetchAPI<any>('/api/orders', {
+  create: (order: CreateOrderRequest) =>
+    fetchAPI<Order>('/api/orders', {
       method: 'POST',
       body: JSON.stringify(order),
     }),
   
-  getById: (id: string) => fetchAPI<any>(`/api/orders/${id}`),
+  getById: (id: string) => fetchAPI<Order>(`/api/orders/${id}`),
   
   getByUser: (lineUserId: string) =>
-    fetchAPI<any[]>(`/api/orders/user/${lineUserId}`),
+    fetchAPI<Order[]>(`/api/orders/user/${lineUserId}`),
   
-  uploadSlip: async (orderId: string, file: File) => {
+  uploadSlip: async (orderId: string, file: File): Promise<Order> => {
     const formData = new FormData();
     formData.append('slip', file);
 
@@ -70,8 +67,8 @@ export const ordersAPI = {
 
 // Announcements API
 export const announcementsAPI = {
-  getAll: () => fetchAPI<any[]>('/api/announcements'),
-  getToday: () => fetchAPI<any>('/api/announcements/today'),
+  getAll: () => fetchAPI<Announcement[]>('/api/announcements'),
+  getToday: () => fetchAPI<Announcement>('/api/announcements/today'),
 };
 
 export default {

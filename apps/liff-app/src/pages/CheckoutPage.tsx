@@ -109,12 +109,22 @@ export function CheckoutPage({ onBack, onOrderComplete }: CheckoutPageProps) {
   };
 
   const handleSubmit = async () => {
-    if (!form.name || !form.phone) {
-      alert('กรุณากรอกชื่อและเบอร์โทร');
+    // Validate name
+    if (!form.name.trim()) {
+      alert('กรุณากรอกชื่อ');
       return;
     }
 
-    if (form.deliveryType !== 'pickup' && !form.address) {
+    // Validate phone (Thai format: 0xxxxxxxxx)
+    const phoneRegex = /^0[0-9]{9}$/;
+    const cleanPhone = form.phone.replace(/[-\s]/g, '');
+    if (!cleanPhone || !phoneRegex.test(cleanPhone)) {
+      alert('กรุณากรอกเบอร์โทรให้ถูกต้อง (เช่น 0812345678)');
+      return;
+    }
+
+    // Validate address for delivery
+    if (form.deliveryType !== 'pickup' && !form.address.trim()) {
       alert('กรุณากรอกที่อยู่จัดส่ง');
       return;
     }
