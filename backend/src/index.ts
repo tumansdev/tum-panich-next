@@ -13,6 +13,7 @@ import menuRoutes from './routes/menu';
 import categoriesRoutes from './routes/categories';
 import ordersRoutes, { setIO } from './routes/orders';
 import announcementsRoutes from './routes/announcements';
+import storeRoutes from './routes/store';
 import webhookRoutes from './routes/webhook';
 import authRoutes from './routes/auth';
 import pool from './db';
@@ -88,6 +89,7 @@ app.use('/api/menu', menuRoutes);
 app.use('/api/categories', categoriesRoutes);
 app.use('/api/orders', ordersRoutes);
 app.use('/api/announcements', announcementsRoutes);
+app.use('/api/store', storeRoutes);
 
 // LINE Webhook (uses raw body parser, must be before JSON parser on this route)
 app.use('/api/webhook', webhookRoutes);

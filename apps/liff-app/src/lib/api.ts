@@ -71,9 +71,15 @@ export const announcementsAPI = {
   getToday: () => fetchAPI<Announcement>('/api/announcements/today'),
 };
 
+// Store Status API
+export const storeAPI = {
+  getStatus: () => fetchAPI<{ isOpen: boolean; message: string }>('/api/store/status'),
+};
+
 export default {
   menu: menuAPI,
   categories: categoriesAPI,
   orders: ordersAPI,
   announcements: announcementsAPI,
+  store: storeAPI,
 };

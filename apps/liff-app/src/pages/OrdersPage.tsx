@@ -32,7 +32,11 @@ const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string; icon: t
   cancelled: { label: 'ยกเลิก', color: 'bg-red-100 text-red-700', icon: AlertCircle },
 };
 
-export function OrdersPage() {
+interface OrdersPageProps {
+  onOrderClick?: (orderId: string) => void;
+}
+
+export function OrdersPage({ onOrderClick }: OrdersPageProps) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedFilter, setSelectedFilter] = useState<'active' | 'history'>('active');
@@ -47,7 +51,9 @@ export function OrdersPage() {
       return;
     }
     
-    setLoading(true);
+    // Don't set loading to true on background refreshes, only initial load
+    if (orders.length === 0) setLoading(true);
+    
     try {
       const data = await ordersAPI.getByUser(lineUserId);
       setOrders(data);
@@ -57,12 +63,12 @@ export function OrdersPage() {
       setLoading(false);
     }
   };
-
+    
   useEffect(() => {
     fetchOrders();
     
-    // Poll for updates every 30 seconds
-    const interval = setInterval(fetchOrders, 30000);
+    // Poll for updates every 10 seconds (faster updates)
+    const interval = setInterval(fetchOrders, 10000);
     return () => clearInterval(interval);
   }, [lineUserId]);
 
@@ -108,11 +114,11 @@ export function OrdersPage() {
           <p className="text-sm text-slate-500">ติดตามสถานะและดูประวัติการสั่งซื้อ</p>
         </div>
         <button 
-          onClick={fetchOrders}
+          onClick={() => { setLoading(true); fetchOrders(); }}
           disabled={loading}
-          className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200"
+          className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 transition-colors"
         >
-          <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
+          <RefreshCw size={20} className={loading ? 'animate-spin text-brand-600' : 'text-slate-600'} />
         </button>
       </div>
 
@@ -148,7 +154,7 @@ export function OrdersPage() {
       </div>
 
       {/* Loading */}
-      {loading && (
+      {loading && orders.length === 0 && (
         <div className="text-center py-8">
           <RefreshCw size={24} className="animate-spin mx-auto text-brand-600" />
           <p className="text-sm text-slate-500 mt-2">กำลังโหลด...</p>
@@ -164,7 +170,7 @@ export function OrdersPage() {
       )}
 
       {/* Orders List */}
-      {!loading && lineUserId && displayOrders.length > 0 && (
+      {lineUserId && displayOrders.length > 0 && (
         <div className="space-y-3">
           {displayOrders.map((order) => {
             const statusConfig = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
@@ -174,7 +180,8 @@ export function OrdersPage() {
             return (
               <div
                 key={order.id}
-                className="w-full bg-white rounded-2xl p-4 shadow-sm border border-slate-100"
+                onClick={() => onOrderClick && onOrderClick(order.id)}
+                className="w-full bg-white rounded-2xl p-4 shadow-sm border border-slate-100 active:scale-[0.98] transition-all cursor-pointer hover:shadow-md"
               >
                 {/* Order Header */}
                 <div className="flex items-center justify-between mb-3">

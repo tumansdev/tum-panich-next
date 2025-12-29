@@ -23,7 +23,7 @@ export function OurStoryPage() {
     <div className="space-y-6 pb-4">
       {/* Hero Section */}
       <div className="relative h-56 bg-gradient-to-br from-brand-800 via-brand-700 to-amber-700 rounded-3xl overflow-hidden shadow-xl">
-        <div className="absolute inset-0 bg-[url('/images/pattern.png')] opacity-5" />
+
         <div className="absolute inset-0 flex flex-col justify-center items-center p-6 text-center">
           <img src="/images/logo.png" alt="Logo" className="w-20 h-20 rounded-2xl shadow-2xl mb-3 border-2 border-white/20" />
           <h1 className="text-white text-2xl font-bold mb-1">ตั้มพานิช</h1>

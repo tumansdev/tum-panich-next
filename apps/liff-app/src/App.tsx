@@ -13,6 +13,9 @@ import { OurStoryPage } from './pages/OurStoryPage';
 import { OrdersPage } from './pages/OrdersPage';
 import { noodleOptions } from './config/menuOptions';
 import { useCartStore } from './stores/cartStore';
+import { Loading } from './components/ui/Loading';
+import { Dialog } from './components/ui/Dialog';
+import { storeAPI } from './lib/api';
 import { X } from 'lucide-react';
 
 type Tab = 'home' | 'orders' | 'cart' | 'story' | 'profile';
@@ -39,6 +42,10 @@ function App() {
   const [selectedNoodle, setSelectedNoodle] = useState<string>('');
   const addItem = useCartStore((state) => state.addItem);
 
+  // Store Status
+  const [storeStatus, setStoreStatus] = useState({ isOpen: true, message: '' });
+  const [showStoreDialog, setShowStoreDialog] = useState(false);
+
   // Initialize LIFF
   useEffect(() => {
     async function init() {
@@ -53,8 +60,14 @@ function App() {
           localStorage.setItem('liff_user_id', userProfile.userId);
         }
       }
+
     }
     init();
+    
+    // Check store status
+    storeAPI.getStatus().then(status => {
+      setStoreStatus(status);
+    });
   }, []);
 
   const handleTabChange = (tab: Tab) => {
@@ -94,6 +107,10 @@ function App() {
   };
 
   const handleSelectProduct = (product: Product) => {
+    if (!storeStatus.isOpen) {
+      setShowStoreDialog(true);
+      return;
+    }
     setSelectedProduct(product);
     setSelectedNoodle(noodleOptions.choices[0]);
   };
@@ -127,20 +144,7 @@ function App() {
   // Loading screen
   if (!liffReady) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-brand-700 via-brand-600 to-amber-600 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-24 h-24 bg-white rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl animate-bounce">
-            <img src="/images/logo.png" alt="Logo" className="w-18 h-18 rounded-2xl" />
-          </div>
-          <h1 className="text-white text-2xl font-bold mb-2">ตั้มพานิช</h1>
-          <p className="text-white/80">ก๋วยเตี๋ยวงบ 100 อร่อยถูก</p>
-          <div className="mt-6 flex justify-center gap-1">
-            <div className="w-2 h-2 bg-white rounded-full animate-pulse" style={{ animationDelay: '0ms' }}></div>
-            <div className="w-2 h-2 bg-white rounded-full animate-pulse" style={{ animationDelay: '150ms' }}></div>
-            <div className="w-2 h-2 bg-white rounded-full animate-pulse" style={{ animationDelay: '300ms' }}></div>
-          </div>
-        </div>
-      </div>
+      <Loading />
     );
   }
 
@@ -161,7 +165,7 @@ function App() {
               />
             )}
             {activeTab === 'orders' && (
-              <OrdersPage />
+              <OrdersPage onOrderClick={handleOrderComplete} />
             )}
             {activeTab === 'cart' && (
               <CartPage onCheckout={handleCheckout} />
@@ -242,6 +246,16 @@ function App() {
           </div>
         </div>
       )}
+      
+      {/* Store Closed Dialog */}
+      <Dialog 
+        isOpen={showStoreDialog}
+        type="warning"
+        title="ขออภัย ร้านปิดอยู่ครับ 😴"
+        message={storeStatus.message || "วันนี้ร้านหยุดให้บริการชั่วคราว ไว้แวะมาใหม่น้าา"}
+        confirmText="เข้าใจแล้ว"
+        onConfirm={() => setShowStoreDialog(false)}
+      />
     </div>
   );
 }

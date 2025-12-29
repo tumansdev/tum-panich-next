@@ -15,8 +15,15 @@ export function HomePage({ profile, onNavigate, onSelectProduct }: HomePageProps
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   
-  // เมนูแนะนำ (สินค้า 4 ตัวแรก)
-  const featuredItems = menuItems.slice(0, 4);
+  // เมนูแนะนำ (สินค้าแนะนำ/ขายดี)
+  const featuredItems = menuItems
+    .filter(item => item.isSpecial)
+    .slice(0, 4);
+    
+  // ถ้าไม่มีเมนูแนะนำ ให้เอาเมนูทั่วไปมาแสดง
+  if (featuredItems.length === 0) {
+    featuredItems.push(...menuItems.slice(0, 4));
+  }
   
   // ค้นหาและ filter เมนู
   const filteredItems = searchQuery.trim() || activeCategory

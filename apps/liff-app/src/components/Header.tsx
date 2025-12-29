@@ -27,34 +27,24 @@ export function Header({ title, subtitle, view, onBack, showLogo = true }: Heade
   return (
     <header className="sticky top-0 z-50 bg-gradient-to-r from-brand-700 to-brand-600 text-white shadow-lg">
       <div className="px-4 py-3">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center">
           {/* Back Button */}
           {!isMainView && onBack && (
             <button
               onClick={onBack}
-              className="w-10 h-10 flex items-center justify-center bg-white/20 hover:bg-white/30 rounded-full transition-colors"
+              className="w-10 h-10 flex items-center justify-center bg-white/20 hover:bg-white/30 rounded-full transition-colors mr-3"
             >
               <ArrowLeft size={20} className="text-white" />
             </button>
           )}
 
-          {/* Logo (only on main view) */}
-          {isMainView && showLogo && (
-            <img src="/images/logo.png" alt="Logo" className="w-11 h-11 rounded-xl shadow-md flex-shrink-0" />
-          )}
-
-          {/* Title & Subtitle */}
+          {/* Title & Subtitle - Left Aligned */}
           <div className="flex-1 min-w-0">
-            <h1 className="text-lg font-bold truncate">{displayTitle}</h1>
+            <h1 className="text-xl font-bold truncate tracking-tight">{displayTitle}</h1>
             {displaySubtitle && (
-              <p className="text-white/80 text-sm truncate">{displaySubtitle}</p>
+              <p className="text-white/90 text-sm truncate font-medium">{displaySubtitle}</p>
             )}
           </div>
-
-          {/* Right Logo (on sub pages) */}
-          {!isMainView && showLogo && (
-            <img src="/images/logo.png" alt="Logo" className="w-9 h-9 rounded-lg flex-shrink-0" />
-          )}
         </div>
       </div>
       

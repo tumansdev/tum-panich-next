@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, MapPin, Phone, User, Upload, CheckCircle, Copy, Store, Truck, Package } from 'lucide-react';
+import { Loading } from '../components/ui/Loading';
 import { useCartStore } from '../stores/cartStore';
 import { useCustomerStore } from '../stores/customerStore';
 import { DistanceChecker } from '../components/DistanceChecker';
@@ -441,23 +442,18 @@ export function CheckoutPage({ onBack, onOrderComplete }: CheckoutPageProps) {
         </div>
       </div>
 
-      {/* Submit Button */}
       <div className="fixed bottom-20 left-0 right-0 p-4 bg-gradient-to-t from-amber-50 to-transparent">
         <button
           onClick={handleSubmit}
           disabled={isSubmitting}
           className="w-full bg-gradient-to-r from-brand-600 to-brand-700 hover:from-brand-700 hover:to-brand-800 disabled:opacity-70 text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-brand-200 transition-all flex items-center justify-center gap-2"
         >
-          {isSubmitting ? (
-            <>
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              กำลังส่งคำสั่งซื้อ...
-            </>
-          ) : (
-            <>ยืนยันสั่งซื้อ • ฿{total}</>
-          )}
+          ยืนยันสั่งซื้อ • ฿{total}
         </button>
       </div>
+
+      {/* Loading Overlay */}
+      {isSubmitting && <Loading />}
     </div>
   );
 }
