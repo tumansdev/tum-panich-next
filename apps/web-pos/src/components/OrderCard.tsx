@@ -1,6 +1,7 @@
-import { Copy, Check, MapPin, Phone, User, Clock, ChevronRight } from 'lucide-react';
+import { Copy, Check, MapPin, Phone, User, Clock, ChevronRight, Printer } from 'lucide-react';
 import { useState } from 'react';
 import { Order, OrderStatus } from '../types';
+import { printKitchenOrder } from '../lib/thermalPrinter';
 
 interface OrderCardProps {
   order: Order;
@@ -127,6 +128,19 @@ ${itemsText}
         </div>
         
         <div className="flex items-center gap-2">
+          {/* Print Button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              printKitchenOrder(order);
+            }}
+            className="flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-xs font-medium hover:bg-blue-200 transition-all"
+            title="พิมพ์ใบสั่งอาหาร"
+          >
+            <Printer size={14} />
+            พิมพ์
+          </button>
+
           {/* Copy Button */}
           {order.deliveryType !== 'pickup' && (
             <button

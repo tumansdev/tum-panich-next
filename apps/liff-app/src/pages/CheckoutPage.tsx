@@ -5,7 +5,6 @@ import { useCustomerStore } from '../stores/customerStore';
 import { DistanceChecker } from '../components/DistanceChecker';
 import { DeliveryType } from '../types';
 import { ordersAPI } from '../lib/api';
-import { sendReceiptAndClose } from '../lib/receiptFlex';
 import { isInLiff } from '../lib/liff';
 
 interface CheckoutPageProps {
@@ -166,9 +165,6 @@ export function CheckoutPage({ onBack, onOrderComplete }: CheckoutPageProps) {
 
       clearCart();
 
-      // แสดง alert ขอบคุณ
-      alert(`✅ สั่งซื้อสำเร็จ!\n\n🧾 หมายเลขออเดอร์: #${order.id}\n💰 ยอดรวม: ฿${total.toLocaleString()}\n\nขอบคุณที่ใช้บริการร้านตั้มพานิช 🍜`);
-
       // ถ้าอยู่ใน LINE App ให้ปิด LIFF
       if (isInLiff()) {
         console.log('In LINE App - closing LIFF');
@@ -178,7 +174,6 @@ export function CheckoutPage({ onBack, onOrderComplete }: CheckoutPageProps) {
         }
       } else {
         // ถ้าไม่ได้อยู่ใน LINE App ให้ไปหน้า order status
-        console.log('Not in LINE App - navigating to order status');
         onOrderComplete(order.id);
       }
     } catch (error) {
