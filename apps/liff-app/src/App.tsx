@@ -20,7 +20,7 @@ type View = 'main' | 'checkout' | 'order-status' | 'menu';
 
 // Tab titles for Header
 const tabTitles: Record<Tab, { title: string; subtitle: string }> = {
-  home: { title: 'ตั้มพานิช', subtitle: 'ก๋วยเตี๋ยวงบ 100 อร่อยถูก' },
+  home: { title: 'ตั้มพานิช', subtitle: 'ข้าวหมูแดง บะหมี่หมูแดง หมูกรอบ' },
   orders: { title: 'ออเดอร์ของฉัน', subtitle: 'ติดตามคำสั่งซื้อ' },
   cart: { title: 'ตะกร้าสินค้า', subtitle: 'สรุปรายการสั่งซื้อ' },
   story: { title: 'เรื่องราวของเรา', subtitle: 'ความเป็นมาร้าน ตั้มพานิช' },

@@ -12,7 +12,7 @@ interface HeaderProps {
 
 // View titles configuration
 const viewTitles: Record<View, { title: string; subtitle?: string }> = {
-  main: { title: 'ตั้มพานิช', subtitle: 'ก๋วยเตี๋ยวงบ 100' },
+  main: { title: 'ตั้มพานิช', subtitle: 'ข้าวหมูแดง บะหมี่หมูแดง หมูกรอบ' },
   checkout: { title: 'ชำระเงิน', subtitle: 'ยืนยันคำสั่งซื้อ' },
   'order-status': { title: 'สถานะออเดอร์', subtitle: 'ติดตามคำสั่งซื้อ' },
   menu: { title: 'เมนูทั้งหมด', subtitle: 'เลือกเมนูโปรด' },
@@ -40,9 +40,7 @@ export function Header({ title, subtitle, view, onBack, showLogo = true }: Heade
 
           {/* Logo (only on main view) */}
           {isMainView && showLogo && (
-            <div className="w-12 h-12 bg-white rounded-xl shadow-md flex items-center justify-center flex-shrink-0">
-              <img src="/images/logo.png" alt="Logo" className="w-10 h-10 rounded-lg" />
-            </div>
+            <img src="/images/logo.png" alt="Logo" className="w-11 h-11 rounded-xl shadow-md flex-shrink-0" />
           )}
 
           {/* Title & Subtitle */}
@@ -55,9 +53,7 @@ export function Header({ title, subtitle, view, onBack, showLogo = true }: Heade
 
           {/* Right Logo (on sub pages) */}
           {!isMainView && showLogo && (
-            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
-              <img src="/images/logo.png" alt="Logo" className="w-8 h-8 rounded-lg" />
-            </div>
+            <img src="/images/logo.png" alt="Logo" className="w-9 h-9 rounded-lg flex-shrink-0" />
           )}
         </div>
       </div>
