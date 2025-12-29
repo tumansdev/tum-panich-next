@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, MapPin, Phone, User, Upload, CheckCircle, Copy, Store, Truck, Package } from 'lucide-react';
 import { Loading } from '../components/ui/Loading';
+import { Dialog, DialogType } from '../components/ui/Dialog';
 import { useCartStore } from '../stores/cartStore';
 import { useCustomerStore } from '../stores/customerStore';
 import { DistanceChecker } from '../components/DistanceChecker';
@@ -63,6 +64,27 @@ export function CheckoutPage({ onBack, onOrderComplete }: CheckoutPageProps) {
     landmark: '',
   });
 
+  // Dialog State
+  const [dialog, setDialog] = useState<{
+    isOpen: boolean;
+    type: DialogType;
+    title: string;
+    message: string;
+  }>({
+    isOpen: false,
+    type: 'info',
+    title: '',
+    message: '',
+  });
+
+  const showDialog = (type: DialogType, title: string, message: string) => {
+    setDialog({ isOpen: true, type, title, message });
+  };
+
+  const closeDialog = () => {
+    setDialog(prev => ({ ...prev, isOpen: false }));
+  };
+
   // Pre-fill from saved customer info
   useEffect(() => {
     if (savedCustomer.name || savedCustomer.phone || savedCustomer.address) {
@@ -112,7 +134,7 @@ export function CheckoutPage({ onBack, onOrderComplete }: CheckoutPageProps) {
   const handleSubmit = async () => {
     // Validate name
     if (!form.name.trim()) {
-      alert('กรุณากรอกชื่อ');
+      showDialog('warning', 'ข้อมูลไม่ครบถ้วน', 'กรุณากรอกชื่อผู้สั่งอาหารด้วยครับ');
       return;
     }
 
@@ -120,18 +142,18 @@ export function CheckoutPage({ onBack, onOrderComplete }: CheckoutPageProps) {
     const phoneRegex = /^0[0-9]{9}$/;
     const cleanPhone = form.phone.replace(/[-\s]/g, '');
     if (!cleanPhone || !phoneRegex.test(cleanPhone)) {
-      alert('กรุณากรอกเบอร์โทรให้ถูกต้อง (เช่น 0812345678)');
+      showDialog('warning', 'ข้อมูลไม่ถูกต้อง', 'กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง (10 หลัก)');
       return;
     }
 
     // Validate address for delivery
     if (form.deliveryType !== 'pickup' && !form.address.trim()) {
-      alert('กรุณากรอกที่อยู่จัดส่ง');
+      showDialog('warning', 'ข้อมูลไม่ครบถ้วน', 'กรุณากรอกที่อยู่สำหรับการจัดส่งด้วยครับ');
       return;
     }
 
     if (paymentMethod === 'promptpay' && !slipImage) {
-      alert('กรุณาอัพโหลดสลิปการโอนเงิน');
+      showDialog('warning', 'หลักฐานการโอนเงิน', 'กรุณาอัพโหลดสลิปการโอนเงินเพื่อยืนยันการชำระเงินครับ');
       return;
     }
 
@@ -167,7 +189,6 @@ export function CheckoutPage({ onBack, onOrderComplete }: CheckoutPageProps) {
 
       // อัพโหลดสลิป (ถ้ามี)
       if (slipImage && paymentMethod === 'promptpay') {
-        // Convert base64 to File
         const response = await fetch(slipImage);
         const blob = await response.blob();
         const file = new File([blob], 'slip.jpg', { type: 'image/jpeg' });
@@ -176,20 +197,20 @@ export function CheckoutPage({ onBack, onOrderComplete }: CheckoutPageProps) {
 
       clearCart();
 
-      // ถ้าอยู่ใน LINE App ให้ปิด LIFF
+      // showDialog('success', 'บันทึกสำเร็จ', 'คำสั่งซื้อของคุณถูกส่งเรียบร้อยแล้ว');
+      // รอสักครู่แล้วค่อยเปลี่ยนหน้า (จริงๆควรทำใน Dialog onConfirm แต่แบบนี้ UX flow ต่อเนื่องกว่า)
+      
       if (isInLiff()) {
-        console.log('In LINE App - closing LIFF');
         const liffModule = await import('@line/liff').then(m => m.default);
         if (liffModule.isInClient()) {
           liffModule.closeWindow();
         }
       } else {
-        // ถ้าไม่ได้อยู่ใน LINE App ให้ไปหน้า order status
         onOrderComplete(order.id);
       }
     } catch (error) {
       console.error('Order error:', error);
-      alert('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
+      showDialog('error', 'เกิดข้อผิดพลาด', 'ไม่สามารถส่งคำสั่งซื้อได้ กรุณาลองใหม่อีกครั้ง');
       setIsSubmitting(false);
     }
   };
@@ -454,6 +475,15 @@ export function CheckoutPage({ onBack, onOrderComplete }: CheckoutPageProps) {
 
       {/* Loading Overlay */}
       {isSubmitting && <Loading />}
+
+      {/* Dialog */}
+      <Dialog
+        isOpen={dialog.isOpen}
+        type={dialog.type}
+        title={dialog.title}
+        message={dialog.message}
+        onConfirm={closeDialog}
+      />
     </div>
   );
 }
