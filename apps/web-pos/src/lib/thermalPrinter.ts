@@ -75,44 +75,69 @@ export function generateKitchenReceipt(order: Order): string {
 }
 
 /**
- * พิมพ์ใบเสร็จ (รูปแบบกระชับ)
+ * พิมพ์ใบเสร็จ (รองรับภาษาไทย)
  */
 export function printKitchenOrder(order: Order): void {
   const receiptContent = generateKitchenReceipt(order);
   
-  const printWindow = window.open('', '_blank', 'width=300,height=400');
+  const printWindow = window.open('', '_blank', 'width=350,height=500');
   if (!printWindow) {
     alert('กรุณาอนุญาตให้เปิด popup เพื่อพิมพ์');
     return;
   }
 
+  // ใช้ Sarabun font ที่รองรับภาษาไทย
   printWindow.document.write(`<!DOCTYPE html>
-<html>
+<html lang="th">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>#${order.id}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    @page { size: 58mm auto; margin: 0; }
+    @page { 
+      size: 58mm auto; 
+      margin: 0; 
+    }
     @media print {
-      html, body { width: 58mm; margin: 0; padding: 2mm; }
+      html, body { 
+        width: 58mm; 
+        margin: 0; 
+        padding: 2mm; 
+      }
+    }
+    * {
+      box-sizing: border-box;
     }
     body {
-      font-family: monospace;
-      font-size: 11px;
-      line-height: 1.3;
+      font-family: 'Sarabun', 'Tahoma', sans-serif;
+      font-size: 12px;
+      line-height: 1.4;
       margin: 0;
-      padding: 2mm;
-      width: 54mm;
+      padding: 3mm;
+      width: 58mm;
     }
-    pre { margin: 0; font-size: 11px; }
+    pre {
+      margin: 0;
+      font-family: 'Sarabun', 'Tahoma', sans-serif;
+      font-size: 12px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
   </style>
 </head>
 <body>
 <pre>${receiptContent}</pre>
 <script>
-window.onload = function() {
-  window.print();
-  setTimeout(function() { window.close(); }, 300);
-};
+  // รอ font โหลดก่อนพิมพ์
+  document.fonts.ready.then(function() {
+    setTimeout(function() {
+      window.print();
+      setTimeout(function() { window.close(); }, 500);
+    }, 200);
+  });
 </script>
 </body>
 </html>`);
