@@ -1,7 +1,7 @@
 # 🔥 Active Task
 
 ## Current Focus
-Critical Security Fixes - Complete! ✅
+Order Status Page & LIFF Audit - Complete! ✅
 
 ## Just Completed
 - [x] Initialize Monorepo
@@ -16,6 +16,10 @@ Critical Security Fixes - Complete! ✅
   - LINE signature verification
   - Protected admin routes with authMiddleware
   - Phone number updated to 084-115-8342
+  - **LIFF Updates:**
+    - Chat button links to OA @299xkppt
+    - Deleted mock data (`menu.ts`)
+    - Audited pages for hardcoded data
 
 ## Files Created/Modified
 ### New Files:
@@ -31,7 +35,8 @@ Critical Security Fixes - Complete! ✅
 - `apps/web-pos/src/stores/authStore.ts` - JWT auth
 - `apps/web-pos/src/pages/LoginPage.tsx` - Username/password
 - `apps/web-pos/src/lib/api.ts` - JWT token in headers
-- `apps/liff-app/src/pages/OrderStatusPage.tsx` - Phone number
+- `apps/liff-app/src/pages/OrderStatusPage.tsx` - Chat/Call buttons fixed
+- `apps/liff-app/src/data/menu.ts` - DELETED
 
 ## Next Steps
 - [ ] Run `add_users.sql` on production database

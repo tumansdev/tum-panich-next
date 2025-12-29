@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Phone, MessageCircle, RefreshCw, Clock, Check, ChefHat, Package, Truck, CheckCircle, LucideIcon } from 'lucide-react';
 import { OrderStatus } from '../types';
-import { sendMessage, closeLiff, isInLiff } from '../lib/liff';
 import { ordersAPI } from '../lib/api';
 import { connectSocket, joinOrderRoom, leaveOrderRoom, onOrderStatusUpdate } from '../lib/socket';
 
@@ -77,13 +76,10 @@ export function OrderStatusPage({ orderId, onBack }: OrderStatusPageProps) {
     };
   }, [orderId]);
 
-  const handleContact = async () => {
-    if (isInLiff()) {
-      await sendMessage(`สอบถามออเดอร์ #${orderId.slice(-8)}`);
-      closeLiff();
-    } else {
-      window.location.href = 'tel:0841158342';
-    }
+  const handleContact = () => {
+    // Open LINE OA Chat
+    // OA ID: @299xkppt
+    window.location.href = 'https://line.me/R/ti/p/@299xkppt';
   };
 
   const handleRefresh = async () => {
