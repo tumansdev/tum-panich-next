@@ -1,74 +1,69 @@
-import { Home, ClipboardList, ShoppingBag, BookOpen, User, ArrowLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 
-type Tab = 'home' | 'orders' | 'cart' | 'story' | 'profile';
 type View = 'main' | 'checkout' | 'order-status' | 'menu';
 
 interface HeaderProps {
-  activeTab: Tab;
+  title?: string;
+  subtitle?: string;
   view: View;
   onBack?: () => void;
+  showLogo?: boolean;
 }
 
-const tabNames: Record<Tab, { name: string; icon: typeof Home }> = {
-  home: { name: 'หน้าแรก', icon: Home },
-  orders: { name: 'ออเดอร์ของฉัน', icon: ClipboardList },
-  cart: { name: 'ตะกร้า', icon: ShoppingBag },
-  story: { name: 'เรื่องราวของเรา', icon: BookOpen },
-  profile: { name: 'โปรไฟล์', icon: User },
+// View titles configuration
+const viewTitles: Record<View, { title: string; subtitle?: string }> = {
+  main: { title: 'ตั้มพานิช', subtitle: 'ก๋วยเตี๋ยวงบ 100' },
+  checkout: { title: 'ชำระเงิน', subtitle: 'ยืนยันคำสั่งซื้อ' },
+  'order-status': { title: 'สถานะออเดอร์', subtitle: 'ติดตามคำสั่งซื้อ' },
+  menu: { title: 'เมนูทั้งหมด', subtitle: 'เลือกเมนูโปรด' },
 };
 
-const viewNames: Record<View, string> = {
-  main: '',
-  checkout: 'ชำระเงิน',
-  'order-status': 'สถานะออเดอร์',
-  menu: 'เมนูทั้งหมด',
-};
-
-export function Header({ activeTab, view, onBack }: HeaderProps) {
+export function Header({ title, subtitle, view, onBack, showLogo = true }: HeaderProps) {
   const isMainView = view === 'main';
-  const currentTab = tabNames[activeTab];
-  const viewName = viewNames[view];
-  const Icon = currentTab.icon;
-
-  // ไม่แสดง Header ในหน้าแรก (มี Hero Section แล้ว)
-  if (isMainView && activeTab === 'home') {
-    return null;
-  }
+  const viewConfig = viewTitles[view];
+  const displayTitle = title || viewConfig.title;
+  const displaySubtitle = subtitle || viewConfig.subtitle;
 
   return (
-    <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-lg border-b border-slate-100 -mx-4 px-4 py-3">
-      <div className="flex items-center gap-3">
-        {/* Back Button */}
-        {!isMainView && onBack && (
-          <button
-            onClick={onBack}
-            className="w-9 h-9 flex items-center justify-center bg-slate-100 rounded-full"
-          >
-            <ArrowLeft size={18} className="text-slate-600" />
-          </button>
-        )}
+    <header className="sticky top-0 z-50 bg-gradient-to-r from-brand-700 to-brand-600 text-white shadow-lg">
+      <div className="px-4 py-3">
+        <div className="flex items-center gap-3">
+          {/* Back Button */}
+          {!isMainView && onBack && (
+            <button
+              onClick={onBack}
+              className="w-10 h-10 flex items-center justify-center bg-white/20 hover:bg-white/30 rounded-full transition-colors"
+            >
+              <ArrowLeft size={20} className="text-white" />
+            </button>
+          )}
 
-        {/* Breadcrumb */}
-        <div className="flex items-center gap-2 flex-1 overflow-hidden">
-          <Icon size={20} className="text-brand-600 flex-shrink-0" />
-          <span className="font-bold text-slate-800 truncate">
-            {currentTab.name}
-          </span>
-          {viewName && (
-            <>
-              <ChevronRight size={16} className="text-slate-400 flex-shrink-0" />
-              <span className="text-brand-600 font-medium truncate">{viewName}</span>
-            </>
+          {/* Logo (only on main view) */}
+          {isMainView && showLogo && (
+            <div className="w-12 h-12 bg-white rounded-xl shadow-md flex items-center justify-center flex-shrink-0">
+              <img src="/images/logo.png" alt="Logo" className="w-10 h-10 rounded-lg" />
+            </div>
+          )}
+
+          {/* Title & Subtitle */}
+          <div className="flex-1 min-w-0">
+            <h1 className="text-lg font-bold truncate">{displayTitle}</h1>
+            {displaySubtitle && (
+              <p className="text-white/80 text-sm truncate">{displaySubtitle}</p>
+            )}
+          </div>
+
+          {/* Right Logo (on sub pages) */}
+          {!isMainView && showLogo && (
+            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
+              <img src="/images/logo.png" alt="Logo" className="w-8 h-8 rounded-lg" />
+            </div>
           )}
         </div>
-
-        {/* Logo */}
-        <img 
-          src="/images/logo.png" 
-          alt="ตั้มพานิช" 
-          className="w-8 h-8 rounded-lg shadow-sm border border-slate-100" 
-        />
       </div>
+      
+      {/* Curved bottom edge */}
+      <div className="h-4 bg-amber-50 rounded-t-[1.5rem] -mt-1"></div>
     </header>
   );
 }

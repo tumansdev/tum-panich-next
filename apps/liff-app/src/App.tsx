@@ -18,6 +18,15 @@ import { X } from 'lucide-react';
 type Tab = 'home' | 'orders' | 'cart' | 'story' | 'profile';
 type View = 'main' | 'checkout' | 'order-status' | 'menu';
 
+// Tab titles for Header
+const tabTitles: Record<Tab, { title: string; subtitle: string }> = {
+  home: { title: 'ตั้มพานิช', subtitle: 'ก๋วยเตี๋ยวงบ 100 อร่อยถูก' },
+  orders: { title: 'ออเดอร์ของฉัน', subtitle: 'ติดตามคำสั่งซื้อ' },
+  cart: { title: 'ตะกร้าสินค้า', subtitle: 'สรุปรายการสั่งซื้อ' },
+  story: { title: 'เรื่องราวของเรา', subtitle: 'ความเป็นมาร้าน ตั้มพานิช' },
+  profile: { title: 'โปรไฟล์', subtitle: 'ข้อมูลส่วนตัว' },
+};
+
 function App() {
   const [activeTab, setActiveTab] = useState<Tab>('home');
   const [view, setView] = useState<View>('main');
@@ -79,6 +88,11 @@ function App() {
     setView('main');
   };
 
+  const handleBackToCart = () => {
+    setView('main');
+    setActiveTab('cart');
+  };
+
   const handleSelectProduct = (product: Product) => {
     setSelectedProduct(product);
     setSelectedNoodle(noodleOptions.choices[0]);
@@ -91,28 +105,52 @@ function App() {
     }
   };
 
+  // Get header config based on current view/tab
+  const getHeaderConfig = () => {
+    if (view === 'main') {
+      return {
+        ...tabTitles[activeTab],
+        view: 'main' as View,
+        onBack: undefined,
+      };
+    }
+    return {
+      title: undefined, // Use default from view
+      subtitle: undefined,
+      view: view,
+      onBack: view === 'checkout' ? handleBackToCart : handleBackToMain,
+    };
+  };
+
+  const headerConfig = getHeaderConfig();
+
   // Loading screen
   if (!liffReady) {
     return (
-      <div className="min-h-screen bg-amber-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-brand-700 via-brand-600 to-amber-600 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-20 h-20 bg-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg animate-pulse">
-            <img src="/images/logo.png" alt="Logo" className="w-14 h-14 rounded-xl" />
+          <div className="w-24 h-24 bg-white rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl animate-bounce">
+            <img src="/images/logo.png" alt="Logo" className="w-18 h-18 rounded-2xl" />
           </div>
-          <p className="text-brand-700 font-medium">กำลังโหลด...</p>
-          <p className="text-slate-500 text-sm mt-1">ยินดีต้อนรับสู่ ตั้มพานิช</p>
+          <h1 className="text-white text-2xl font-bold mb-2">ตั้มพานิช</h1>
+          <p className="text-white/80">ก๋วยเตี๋ยวงบ 100 อร่อยถูก</p>
+          <div className="mt-6 flex justify-center gap-1">
+            <div className="w-2 h-2 bg-white rounded-full animate-pulse" style={{ animationDelay: '0ms' }}></div>
+            <div className="w-2 h-2 bg-white rounded-full animate-pulse" style={{ animationDelay: '150ms' }}></div>
+            <div className="w-2 h-2 bg-white rounded-full animate-pulse" style={{ animationDelay: '300ms' }}></div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-amber-50">
-      {/* Header with navigation breadcrumb */}
-      <Header activeTab={activeTab} view={view} onBack={handleBackToMain} />
+    <div className="min-h-screen bg-amber-50 flex flex-col">
+      {/* Header - Always Visible */}
+      <Header {...headerConfig} />
 
       {/* Main Content */}
-      <main className="p-4 pt-2 pb-24">
+      <main className="flex-1 px-4 pb-24">
         {view === 'main' && (
           <>
             {activeTab === 'home' && (
@@ -138,20 +176,12 @@ function App() {
         )}
 
         {view === 'menu' && (
-          <div>
-            <button
-              onClick={handleBackToMain}
-              className="mb-3 text-brand-600 text-sm font-medium flex items-center gap-1"
-            >
-              ← กลับหน้าแรก
-            </button>
-            <MenuPage onSelectProduct={handleSelectProduct} />
-          </div>
+          <MenuPage onSelectProduct={handleSelectProduct} />
         )}
 
         {view === 'checkout' && (
           <CheckoutPage
-            onBack={() => setView('main')}
+            onBack={handleBackToCart}
             onOrderComplete={handleOrderComplete}
           />
         )}
@@ -164,15 +194,13 @@ function App() {
         )}
       </main>
 
-      {/* Bottom Navigation */}
-      {(view === 'main' || view === 'menu') && (
-        <BottomNav activeTab={activeTab} onTabChange={handleTabChange} />
-      )}
+      {/* Bottom Navigation - Always Visible */}
+      <BottomNav activeTab={activeTab} onTabChange={handleTabChange} />
 
       {/* Noodle Options Modal */}
       {selectedProduct && (
         <div className="fixed inset-0 bg-black/50 z-[100] flex items-end justify-center">
-          <div className="bg-white rounded-t-3xl w-full max-w-lg p-6 space-y-4 animate-slide-up">
+          <div className="bg-white rounded-t-3xl w-full max-w-lg p-6 space-y-4 animate-slide-up safe-area-bottom">
             <div className="flex justify-between items-start">
               <div>
                 <h3 className="font-bold text-lg text-slate-800">{selectedProduct.name}</h3>
@@ -207,7 +235,7 @@ function App() {
 
             <button
               onClick={handleAddWithOptions}
-              className="w-full bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white font-bold py-4 rounded-xl shadow-lg shadow-brand-200"
+              className="w-full bg-gradient-to-r from-brand-600 to-brand-700 hover:from-brand-700 hover:to-brand-800 text-white font-bold py-4 rounded-xl shadow-lg shadow-brand-200 transition-all"
             >
               เพิ่มลงตะกร้า
             </button>

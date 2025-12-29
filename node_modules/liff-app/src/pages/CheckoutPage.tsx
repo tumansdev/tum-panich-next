@@ -196,17 +196,7 @@ export function CheckoutPage({ onBack, onOrderComplete }: CheckoutPageProps) {
   const needsAddress = form.deliveryType !== 'pickup';
 
   return (
-    <div className="space-y-4 pb-36">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <button
-          onClick={onBack}
-          className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm border border-slate-100"
-        >
-          <ArrowLeft size={20} className="text-slate-600" />
-        </button>
-        <h2 className="text-lg font-bold text-slate-800">ยืนยันคำสั่งซื้อ</h2>
-      </div>
+    <div className="space-y-4 pb-36 pt-2">
 
       {/* Customer Info */}
       <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100 space-y-3">

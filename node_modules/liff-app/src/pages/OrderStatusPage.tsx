@@ -138,22 +138,14 @@ export function OrderStatusPage({ orderId, onBack }: OrderStatusPageProps) {
   }
 
   return (
-    <div className="space-y-4">
-      {/* Header */}
+    <div className="space-y-4 pt-2">
+      {/* Order ID Display */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={onBack}
-            className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm border border-slate-100"
-          >
-            <ArrowLeft size={20} className="text-slate-600" />
-          </button>
-          <div>
-            <h2 className="text-lg font-bold text-slate-800">สถานะคำสั่งซื้อ</h2>
-            <p className="text-sm text-slate-500">#{orderId.slice(-8)}</p>
-          </div>
+        <div>
+          <p className="text-sm text-slate-500">หมายเลขออเดอร์</p>
+          <p className="text-lg font-bold font-mono text-slate-800">#{orderId.slice(-8)}</p>
         </div>
-        <button onClick={handleRefresh} className="p-2 bg-slate-100 rounded-lg" disabled={loading}>
+        <button onClick={handleRefresh} className="p-3 bg-slate-100 rounded-xl" disabled={loading}>
           <RefreshCw size={18} className={`text-slate-600 ${loading ? 'animate-spin' : ''}`} />
         </button>
       </div>

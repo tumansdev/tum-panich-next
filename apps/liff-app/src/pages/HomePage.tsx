@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronRight, Search, SlidersHorizontal, Flame, RefreshCw, User } from 'lucide-react';
+import { ChevronRight, Search, SlidersHorizontal, Flame, RefreshCw } from 'lucide-react';
 import { ProductCard } from '../components/ProductCard';
 import { Product, LiffProfile } from '../types';
 import { useMenu } from '../hooks/useMenu';
@@ -32,19 +32,9 @@ export function HomePage({ profile, onNavigate, onSelectProduct }: HomePageProps
   // Loading state
   if (loading) {
     return (
-      <div className="space-y-5 -mt-4">
-        {/* Hero Section Skeleton */}
-        <div className="relative bg-gradient-to-br from-brand-700 via-brand-600 to-brand-700 -mx-4 px-4 pt-4 pb-8 rounded-b-[2.5rem] shadow-lg">
-          <div className="flex items-center justify-between mb-6">
-            <div className="w-12 h-12 rounded-full bg-white/20 animate-pulse" />
-            <div className="w-10 h-10 rounded-full bg-white/20 animate-pulse" />
-          </div>
-          <div className="space-y-2 mb-5">
-            <div className="h-4 w-32 bg-white/20 rounded animate-pulse" />
-            <div className="h-8 w-48 bg-white/20 rounded animate-pulse" />
-          </div>
-          <div className="h-12 bg-white/20 rounded-full animate-pulse" />
-        </div>
+      <div className="space-y-4 pt-2">
+        {/* Search Skeleton */}
+        <div className="h-12 bg-slate-200 rounded-xl animate-pulse" />
         
         {/* Category Pills Skeleton */}
         <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4">
@@ -67,11 +57,15 @@ export function HomePage({ profile, onNavigate, onSelectProduct }: HomePageProps
   if (error) {
     return (
       <div className="text-center py-12">
+        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <span className="text-3xl">😢</span>
+        </div>
         <p className="text-red-600 mb-4">{error}</p>
         <button 
           onClick={refetch}
-          className="px-4 py-2 bg-brand-600 text-white rounded-lg"
+          className="px-6 py-3 bg-brand-600 text-white rounded-xl font-medium flex items-center gap-2 mx-auto"
         >
+          <RefreshCw size={18} />
           ลองใหม่
         </button>
       </div>
@@ -79,65 +73,45 @@ export function HomePage({ profile, onNavigate, onSelectProduct }: HomePageProps
   }
 
   return (
-    <div className="space-y-5 -mt-4">
-      {/* Hero Section - Curved Bottom */}
-      <div className="relative bg-gradient-to-br from-brand-700 via-brand-600 to-brand-700 -mx-4 px-4 pt-4 pb-8 rounded-b-[2.5rem] shadow-lg">
-        {/* Top Bar: Profile Photo + Refresh */}
-        <div className="flex items-center justify-between mb-6">
-          {/* Profile Photo or Logo */}
-          {profile?.pictureUrl ? (
-            <img 
-              src={profile.pictureUrl} 
-              alt={profile.displayName}
-              className="w-12 h-12 rounded-full shadow-md border-2 border-white/30 object-cover" 
-            />
-          ) : (
-            <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center shadow-md border-2 border-white/30">
-              <User size={24} className="text-white/80" />
-            </div>
-          )}
-          <button 
-            onClick={refetch}
-            className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center"
-          >
-            <RefreshCw size={20} className="text-white" />
-          </button>
-        </div>
-        
-        {/* Welcome Text with LINE Name */}
-        <div className="mb-5">
-          <p className="text-white/90 text-sm mb-1">
-            สวัสดี, คุณ {profile?.displayName || 'ผู้ใช้งาน'} 👋
+    <div className="space-y-4 pt-2">
+      {/* Welcome Message */}
+      {profile?.displayName && (
+        <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
+          <p className="text-slate-600 text-sm">
+            สวัสดี, <span className="font-bold text-brand-700">{profile.displayName}</span> 👋
           </p>
-          <h1 className="text-white text-2xl font-bold leading-tight">
-            วันนี้รับ<br/>
-            <span className="text-amber-200">อะไรดีครับ?</span>
-          </h1>
+          <p className="text-slate-500 text-xs mt-0.5">วันนี้รับอะไรดีครับ?</p>
         </div>
-        
-        {/* Search Bar */}
-        <div className="relative flex items-center gap-2">
-          <div className="flex-1 relative">
-            <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              placeholder="ค้นหาเมนูอร่อย..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-11 pr-4 py-3.5 bg-white rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-amber-300 shadow-md"
-            />
-          </div>
-          <button 
-            onClick={() => onNavigate('menu')}
-            className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-md"
-          >
-            <SlidersHorizontal size={20} className="text-brand-600" />
-          </button>
+      )}
+
+      {/* Search Bar */}
+      <div className="relative flex items-center gap-2">
+        <div className="flex-1 relative">
+          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            placeholder="ค้นหาเมนูอร่อย..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 shadow-sm"
+          />
         </div>
+        <button 
+          onClick={() => onNavigate('menu')}
+          className="w-12 h-12 bg-brand-600 rounded-xl flex items-center justify-center shadow-md"
+        >
+          <SlidersHorizontal size={20} className="text-white" />
+        </button>
+        <button 
+          onClick={refetch}
+          className="w-12 h-12 bg-white border border-slate-200 rounded-xl flex items-center justify-center shadow-sm"
+        >
+          <RefreshCw size={18} className="text-slate-600" />
+        </button>
       </div>
 
       {/* Category Pills */}
-      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-4 px-4">
+      <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-hide">
         <button
           onClick={() => setActiveCategory(null)}
           className={`flex-shrink-0 px-5 py-2.5 rounded-full text-sm font-medium transition-all ${
@@ -184,7 +158,8 @@ export function HomePage({ profile, onNavigate, onSelectProduct }: HomePageProps
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 bg-slate-50 rounded-xl">
+            <div className="text-center py-8 bg-white rounded-xl border border-slate-100">
+              <span className="text-4xl mb-2 block">🍜</span>
               <p className="text-slate-500">ไม่พบเมนูที่ค้นหา</p>
             </div>
           )}
@@ -219,7 +194,8 @@ export function HomePage({ profile, onNavigate, onSelectProduct }: HomePageProps
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 bg-slate-50 rounded-xl">
+            <div className="text-center py-8 bg-white rounded-xl border border-slate-100">
+              <span className="text-4xl mb-2 block">🍲</span>
               <p className="text-slate-500">ยังไม่มีเมนู</p>
             </div>
           )}
