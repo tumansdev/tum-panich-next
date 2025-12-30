@@ -1,16 +1,15 @@
 import { useState } from 'react';
 import { ChevronRight, Search, SlidersHorizontal, Flame, RefreshCw } from 'lucide-react';
 import { ProductCard } from '../components/ProductCard';
-import { Product, LiffProfile } from '../types';
+import { Product } from '../types';
 import { useMenu } from '../hooks/useMenu';
 
 interface HomePageProps {
-  profile?: LiffProfile | null;
   onNavigate: (tab: 'menu' | 'cart') => void;
   onSelectProduct: (product: Product) => void;
 }
 
-export function HomePage({ profile, onNavigate, onSelectProduct }: HomePageProps) {
+export function HomePage({ onNavigate, onSelectProduct }: HomePageProps) {
   const { menuItems, categories, loading, error, refetch } = useMenu();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
@@ -81,15 +80,7 @@ export function HomePage({ profile, onNavigate, onSelectProduct }: HomePageProps
 
   return (
     <div className="space-y-4 pt-2">
-      {/* Welcome Message */}
-      {profile?.displayName && (
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
-          <p className="text-slate-600 text-sm">
-            สวัสดี, <span className="font-bold text-brand-700">{profile.displayName}</span> 👋
-          </p>
-          <p className="text-slate-500 text-xs mt-0.5">วันนี้รับอะไรดีครับ?</p>
-        </div>
-      )}
+      {/* Welcome Message - Removed (Moved to Header) */}
 
       {/* Search Bar */}
       <div className="relative flex items-center gap-2">

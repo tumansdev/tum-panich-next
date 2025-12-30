@@ -132,6 +132,7 @@ function App() {
         ...tabTitles[activeTab],
         view: 'main' as View,
         onBack: undefined,
+        profile: profile, // Pass profile for Hero Header
       };
     }
     return {
@@ -162,7 +163,6 @@ function App() {
           <>
             {activeTab === 'home' && (
               <HomePage 
-                profile={profile}
                 onNavigate={handleNavigate}
                 onSelectProduct={handleSelectProduct}
               />
