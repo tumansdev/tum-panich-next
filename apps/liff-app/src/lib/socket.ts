@@ -22,13 +22,13 @@ export function connectSocket(): Socket {
 
   socket.on('connect', () => {
     if (import.meta.env.DEV) {
-      console.log('Socket connected:', socket?.id);
+      console.debug('Socket connected:', socket?.id);
     }
   });
 
   socket.on('disconnect', () => {
     if (import.meta.env.DEV) {
-      console.log('Socket disconnected');
+      console.debug('Socket disconnected');
     }
   });
 

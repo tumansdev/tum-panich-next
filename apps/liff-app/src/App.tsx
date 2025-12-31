@@ -64,9 +64,6 @@ function App() {
     }
     init();
     
-    // DEBUG: Version Check
-    console.log('🚀 App Version: Custom Dialog Fix v2 (No-Cache)');
-    
     // Check store status
     storeAPI.getStatus().then(status => {
       setStoreStatus(status);
