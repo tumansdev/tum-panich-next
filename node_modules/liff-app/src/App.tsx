@@ -133,6 +133,7 @@ function App() {
         view: 'main' as View,
         onBack: undefined,
         profile: profile, // Pass profile for Hero Header
+        activeTab: activeTab, // Pass activeTab to control Hero Header display
       };
     }
     return {
@@ -140,6 +141,7 @@ function App() {
       subtitle: undefined,
       view: view,
       onBack: view === 'checkout' ? handleBackToCart : handleBackToMain,
+      activeTab: undefined,
     };
   };
 

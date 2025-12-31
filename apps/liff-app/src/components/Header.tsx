@@ -9,6 +9,7 @@ interface HeaderProps {
   view: View;
   onBack?: () => void;
   profile?: LiffProfile | null;
+  activeTab?: string;
 }
 
 // View titles configuration
@@ -19,13 +20,13 @@ const viewTitles: Record<View, { title: string; subtitle?: string }> = {
   menu: { title: 'เมนูทั้งหมด', subtitle: 'เลือกเมนูโปรด' },
 };
 
-export function Header({ title, subtitle, view, onBack, profile }: HeaderProps) {
-  const isMainView = view === 'main';
+export function Header({ title, subtitle, view, onBack, profile, activeTab }: HeaderProps) {
+  const isHeroMode = view === 'main' && activeTab === 'home';
   const viewConfig = viewTitles[view];
   const displayTitle = title || viewConfig.title;
   const displaySubtitle = subtitle || viewConfig.subtitle;
 
-  if (isMainView) {
+  if (isHeroMode) {
     return (
       <header className="relative bg-gradient-to-br from-brand-800 to-brand-600 text-white overflow-hidden shadow-xl">
         {/* Background Decor */}
@@ -71,29 +72,26 @@ export function Header({ title, subtitle, view, onBack, profile }: HeaderProps) 
 
   // Standard Header for other pages
   return (
-    <header className="sticky top-0 z-50 bg-gradient-to-r from-brand-700 to-brand-600 text-white shadow-lg">
+    <header className="sticky top-0 z-50 bg-white text-slate-800 shadow-sm border-b border-slate-100">
       <div className="px-4 py-3 relative z-10">
         <div className="flex items-center">
           {onBack && (
             <button
               onClick={onBack}
-              className="w-10 h-10 flex items-center justify-center bg-white/20 hover:bg-white/30 rounded-full transition-colors mr-3"
+              className="w-10 h-10 flex items-center justify-center bg-slate-100 hover:bg-slate-200 rounded-full transition-colors mr-3"
             >
-              <ArrowLeft size={20} className="text-white" />
+              <ArrowLeft size={20} className="text-slate-600" />
             </button>
           )}
 
           <div className="flex-1 min-w-0">
-            <h1 className="text-xl font-bold truncate tracking-tight">{displayTitle}</h1>
+            <h1 className="text-xl font-bold truncate tracking-tight text-slate-900">{displayTitle}</h1>
             {displaySubtitle && (
-              <p className="text-white/90 text-sm truncate font-medium">{displaySubtitle}</p>
+              <p className="text-slate-500 text-sm truncate font-medium">{displaySubtitle}</p>
             )}
           </div>
         </div>
       </div>
-      
-      {/* Small curve for standard header */}
-      <div className="h-3 bg-amber-50 rounded-t-[1.5rem] -mt-1 relative z-0"></div>
     </header>
   );
 }
