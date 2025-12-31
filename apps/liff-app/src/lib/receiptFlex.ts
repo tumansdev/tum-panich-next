@@ -269,8 +269,9 @@ export async function sendReceiptAndClose(data: ReceiptData): Promise<boolean> {
   }
 
   try {
-    // แสดง alert ขอบคุณ
-    alert(`✅ สั่งซื้อสำเร็จ!\n\n🧾 หมายเลขออเดอร์: #${data.orderId}\n💰 ยอดรวม: ฿${data.totalAmount.toLocaleString()}\n\nขอบคุณที่ใช้บริการร้านตั้มพานิช 🍜`);
+    // Note: This function is deprecated. Use Dialog component instead.
+    // Keeping for backward compatibility but logging only.
+    console.log(`✅ Order Complete: #${data.orderId}, Total: ฿${data.totalAmount.toLocaleString()}`);
     
     // ปิด LIFF
     closeLiff();

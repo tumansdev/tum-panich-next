@@ -1,6 +1,7 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { CartItem, Product } from '../types';
+import { APP_CONFIG } from '../config/storeInfo';
 
 // สร้าง unique ID
 function generateId(): string {
@@ -9,6 +10,7 @@ function generateId(): string {
 
 interface CartState {
   items: CartItem[];
+  lastUpdated: number; // Timestamp for expiry check
   addItem: (product: Product, options?: Record<string, string>) => void;
   removeItem: (itemId: string) => void;
   updateItemNote: (itemId: string, note: string) => void;
@@ -16,12 +18,14 @@ interface CartState {
   getTotal: () => number;
   getItemCount: () => number;
   getGroupedItems: () => { product: Product; items: CartItem[] }[];
+  checkAndClearExpired: () => void;
 }
 
 export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
+      lastUpdated: Date.now(),
 
       // เพิ่มสินค้า 1 ชิ้น = 1 CartItem (ไม่รวม quantity)
       addItem: (product, options = {}) => {
@@ -34,6 +38,7 @@ export const useCartStore = create<CartState>()(
         
         set((state) => ({
           items: [...state.items, newItem],
+          lastUpdated: Date.now(),
         }));
       },
 
@@ -41,6 +46,7 @@ export const useCartStore = create<CartState>()(
       removeItem: (itemId) => {
         set((state) => ({
           items: state.items.filter((item) => item.id !== itemId),
+          lastUpdated: Date.now(),
         }));
       },
 
@@ -50,10 +56,11 @@ export const useCartStore = create<CartState>()(
           items: state.items.map((item) =>
             item.id === itemId ? { ...item, note } : item
           ),
+          lastUpdated: Date.now(),
         }));
       },
 
-      clearCart: () => set({ items: [] }),
+      clearCart: () => set({ items: [], lastUpdated: Date.now() }),
 
       getTotal: () => {
         return get().items.reduce((sum, item) => sum + item.product.price, 0);
@@ -83,9 +90,60 @@ export const useCartStore = create<CartState>()(
 
         return Array.from(grouped.values());
       },
+
+      // Check and clear expired cart (Future-proofing)
+      checkAndClearExpired: () => {
+        const state = get();
+        const hoursElapsed = (Date.now() - state.lastUpdated) / (1000 * 60 * 60);
+        
+        if (hoursElapsed >= APP_CONFIG.cartExpiryHours && state.items.length > 0) {
+          console.log(`🛒 Cart expired after ${hoursElapsed.toFixed(1)} hours. Clearing...`);
+          set({ items: [], lastUpdated: Date.now() });
+        }
+      },
     }),
     {
-      name: 'tum-panich-cart-v2',
+      name: 'tum-panich-cart-v3', // Bumped version for migration
+      storage: createJSONStorage(() => {
+        // Safe localStorage wrapper with error handling
+        return {
+          getItem: (name) => {
+            try {
+              return localStorage.getItem(name);
+            } catch {
+              console.warn('localStorage.getItem failed');
+              return null;
+            }
+          },
+          setItem: (name, value) => {
+            try {
+              localStorage.setItem(name, value);
+            } catch {
+              console.warn('localStorage.setItem failed');
+            }
+          },
+          removeItem: (name) => {
+            try {
+              localStorage.removeItem(name);
+            } catch {
+              console.warn('localStorage.removeItem failed');
+            }
+          },
+        };
+      }),
+      // Only persist these fields
+      partialize: (state) => ({ 
+        items: state.items, 
+        lastUpdated: state.lastUpdated 
+      }),
     }
   )
 );
+
+// Auto-check for expired cart on module load
+if (typeof window !== 'undefined') {
+  // Delay check to ensure store is hydrated
+  setTimeout(() => {
+    useCartStore.getState().checkAndClearExpired();
+  }, 1000);
+}

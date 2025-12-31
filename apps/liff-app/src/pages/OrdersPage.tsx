@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Clock, Package, Truck, CheckCircle, ChevronRight, History, AlertCircle, RefreshCw } from 'lucide-react';
+import { Clock, Package, Truck, CheckCircle, History, AlertCircle, RefreshCw } from 'lucide-react';
 import { ordersAPI } from '../lib/api';
+import { storage } from '../config/storeInfo';
 
 type OrderStatus = 'pending' | 'confirmed' | 'cooking' | 'ready' | 'delivered' | 'completed' | 'cancelled';
 
@@ -41,8 +42,8 @@ export function OrdersPage({ onOrderClick }: OrdersPageProps) {
   const [loading, setLoading] = useState(true);
   const [selectedFilter, setSelectedFilter] = useState<'active' | 'history'>('active');
 
-  // Get LINE user ID from localStorage
-  const lineUserId = localStorage.getItem('liff_user_id');
+  // Get LINE user ID from localStorage (safe wrapper)
+  const lineUserId = storage.get<string>('liff_user_id');
 
   // Fetch orders
   const fetchOrders = async () => {

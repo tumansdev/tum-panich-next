@@ -1,23 +1,120 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Phone, MessageCircle, RefreshCw, Clock, Check, ChefHat, Package, Truck, CheckCircle, LucideIcon } from 'lucide-react';
+import { Phone, MessageCircle, RefreshCw, Clock, Check, ChefHat, Package, Truck, CheckCircle, LucideIcon } from 'lucide-react';
 import { OrderStatus } from '../types';
 import { ordersAPI } from '../lib/api';
 import { connectSocket, joinOrderRoom, leaveOrderRoom, onOrderStatusUpdate } from '../lib/socket';
+import { STORE_INFO, ERROR_MESSAGES } from '../config/storeInfo';
 
 interface OrderStatusPageProps {
   orderId: string;
   onBack: () => void;
 }
 
-// Status configuration
-const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string; icon: LucideIcon }> = {
-  pending: { label: 'รอร้านยืนยัน', color: 'amber', icon: Clock },
-  confirmed: { label: 'รับออเดอร์แล้ว', color: 'blue', icon: Check },
-  cooking: { label: 'กำลังปรุงอาหาร', color: 'orange', icon: ChefHat },
-  ready: { label: 'พร้อมรับ/ส่ง', color: 'green', icon: Package },
-  delivered: { label: 'กำลังจัดส่ง', color: 'purple', icon: Truck },
-  completed: { label: 'เสร็จสิ้น', color: 'green', icon: CheckCircle },
-  cancelled: { label: 'ยกเลิก', color: 'red', icon: Clock },
+// Status configuration with STATIC Tailwind classes (fixes dynamic class issue)
+interface StatusStyle {
+  label: string;
+  icon: LucideIcon;
+  cardBg: string;
+  cardBorder: string;
+  iconBg: string;
+  iconColor: string;
+  textColor: string;
+  timelineCurrent: string;
+  timelinePast: string;
+}
+
+const STATUS_STYLES: Record<OrderStatus, StatusStyle> = {
+  pending: {
+    label: 'รอร้านยืนยัน',
+    icon: Clock,
+    cardBg: 'bg-amber-50',
+    cardBorder: 'border-amber-200',
+    iconBg: 'bg-amber-100',
+    iconColor: 'text-amber-600',
+    textColor: 'text-amber-800',
+    timelineCurrent: 'bg-amber-500 text-white',
+    timelinePast: 'bg-amber-100 text-amber-600',
+  },
+  confirmed: {
+    label: 'รับออเดอร์แล้ว',
+    icon: Check,
+    cardBg: 'bg-blue-50',
+    cardBorder: 'border-blue-200',
+    iconBg: 'bg-blue-100',
+    iconColor: 'text-blue-600',
+    textColor: 'text-blue-800',
+    timelineCurrent: 'bg-blue-500 text-white',
+    timelinePast: 'bg-blue-100 text-blue-600',
+  },
+  cooking: {
+    label: 'กำลังปรุงอาหาร',
+    icon: ChefHat,
+    cardBg: 'bg-orange-50',
+    cardBorder: 'border-orange-200',
+    iconBg: 'bg-orange-100',
+    iconColor: 'text-orange-600',
+    textColor: 'text-orange-800',
+    timelineCurrent: 'bg-orange-500 text-white',
+    timelinePast: 'bg-orange-100 text-orange-600',
+  },
+  ready: {
+    label: 'พร้อมรับ/ส่ง',
+    icon: Package,
+    cardBg: 'bg-green-50',
+    cardBorder: 'border-green-200',
+    iconBg: 'bg-green-100',
+    iconColor: 'text-green-600',
+    textColor: 'text-green-800',
+    timelineCurrent: 'bg-green-500 text-white',
+    timelinePast: 'bg-green-100 text-green-600',
+  },
+  delivered: {
+    label: 'กำลังจัดส่ง',
+    icon: Truck,
+    cardBg: 'bg-purple-50',
+    cardBorder: 'border-purple-200',
+    iconBg: 'bg-purple-100',
+    iconColor: 'text-purple-600',
+    textColor: 'text-purple-800',
+    timelineCurrent: 'bg-purple-500 text-white',
+    timelinePast: 'bg-purple-100 text-purple-600',
+  },
+  completed: {
+    label: 'เสร็จสิ้น',
+    icon: CheckCircle,
+    cardBg: 'bg-green-50',
+    cardBorder: 'border-green-200',
+    iconBg: 'bg-green-100',
+    iconColor: 'text-green-600',
+    textColor: 'text-green-800',
+    timelineCurrent: 'bg-green-500 text-white',
+    timelinePast: 'bg-green-100 text-green-600',
+  },
+  cancelled: {
+    label: 'ยกเลิก',
+    icon: Clock,
+    cardBg: 'bg-red-50',
+    cardBorder: 'border-red-200',
+    iconBg: 'bg-red-100',
+    iconColor: 'text-red-600',
+    textColor: 'text-red-800',
+    timelineCurrent: 'bg-red-500 text-white',
+    timelinePast: 'bg-red-100 text-red-600',
+  },
+};
+
+// Timeline steps for display
+const TIMELINE_STEPS: OrderStatus[] = ['pending', 'confirmed', 'cooking', 'ready', 'completed'];
+
+// Status descriptions
+const STATUS_DESCRIPTIONS: Record<OrderStatus, string> = {
+  pending: 'ร้านกำลังยืนยันออเดอร์ของคุณ',
+  confirmed: 'ร้านรับออเดอร์แล้ว กำลังเตรียมวัตถุดิบ',
+  cooking: 'อาหารของคุณกำลังปรุง รอสักครู่นะคะ',
+  ready: 'อาหารพร้อมแล้ว! รอรับหรือรอไรเดอร์',
+  delivered: 'ไรเดอร์กำลังเดินทางไปหาคุณ',
+  completed: 'ขอบคุณที่ใช้บริการ! ♥',
+  cancelled: 'ออเดอร์ถูกยกเลิก',
 };
 
 interface OrderData {
@@ -45,7 +142,6 @@ export function OrderStatusPage({ orderId, onBack }: OrderStatusPageProps) {
 
     async function init() {
       try {
-        // Fetch order data
         const data = await ordersAPI.getById(orderId);
         setOrder(data);
         setCurrentStatus(data.status as OrderStatus);
@@ -63,7 +159,7 @@ export function OrderStatusPage({ orderId, onBack }: OrderStatusPageProps) {
         });
       } catch (err) {
         console.error('Failed to fetch order:', err);
-        setError('ไม่สามารถโหลดข้อมูลออเดอร์ได้');
+        setError(ERROR_MESSAGES.orderLoad);
         setLoading(false);
       }
     }
@@ -77,9 +173,7 @@ export function OrderStatusPage({ orderId, onBack }: OrderStatusPageProps) {
   }, [orderId]);
 
   const handleContact = () => {
-    // Open LINE OA Chat
-    // OA ID: @299xkppt
-    window.location.href = 'https://line.me/R/ti/p/@299xkppt';
+    window.location.href = STORE_INFO.lineOaUrl;
   };
 
   const handleRefresh = async () => {
@@ -88,15 +182,15 @@ export function OrderStatusPage({ orderId, onBack }: OrderStatusPageProps) {
       const data = await ordersAPI.getById(orderId);
       setOrder(data);
       setCurrentStatus(data.status as OrderStatus);
-    } catch (err) {
-      setError('ไม่สามารถโหลดข้อมูลได้');
+    } catch {
+      setError(ERROR_MESSAGES.orderLoad);
     } finally {
       setLoading(false);
     }
   };
 
-  const statusConfig = STATUS_CONFIG[currentStatus] || STATUS_CONFIG.pending;
-  const StatusIcon = statusConfig.icon;
+  const styles = STATUS_STYLES[currentStatus] || STATUS_STYLES.pending;
+  const StatusIcon = styles.icon;
 
   // Loading state
   if (loading) {
@@ -118,9 +212,6 @@ export function OrderStatusPage({ orderId, onBack }: OrderStatusPageProps) {
     return (
       <div className="space-y-4">
         <div className="flex items-center gap-3">
-          <button onClick={onBack} className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm border border-slate-100">
-            <ArrowLeft size={20} className="text-slate-600" />
-          </button>
           <h2 className="text-lg font-bold text-slate-800">สถานะคำสั่งซื้อ</h2>
         </div>
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-center">
@@ -146,44 +237,37 @@ export function OrderStatusPage({ orderId, onBack }: OrderStatusPageProps) {
         </button>
       </div>
 
-      {/* Status Card */}
-      <div className={`bg-${statusConfig.color}-50 border border-${statusConfig.color}-200 rounded-xl p-4 text-center`}>
-        <div className={`w-16 h-16 mx-auto mb-3 rounded-full bg-${statusConfig.color}-100 flex items-center justify-center`}>
-          <StatusIcon size={32} className={`text-${statusConfig.color}-600`} />
+      {/* Status Card - Using STATIC classes */}
+      <div className={`${styles.cardBg} border ${styles.cardBorder} rounded-xl p-4 text-center`}>
+        <div className={`w-16 h-16 mx-auto mb-3 rounded-full ${styles.iconBg} flex items-center justify-center`}>
+          <StatusIcon size={32} className={styles.iconColor} />
         </div>
-        <h3 className={`font-bold text-${statusConfig.color}-800 text-lg`}>{statusConfig.label}</h3>
-        <p className="text-sm text-slate-600 mt-1">
-          {currentStatus === 'pending' && 'ร้านกำลังยืนยันออเดอร์ของคุณ'}
-          {currentStatus === 'confirmed' && 'ร้านรับออเดอร์แล้ว กำลังเตรียมวัตถุดิบ'}
-          {currentStatus === 'cooking' && 'อาหารของคุณกำลังปรุง รอสักครู่นะคะ'}
-          {currentStatus === 'ready' && 'อาหารพร้อมแล้ว! รอรับหรือรอไรเดอร์'}
-          {currentStatus === 'delivered' && 'ไรเดอร์กำลังเดินทางไปหาคุณ'}
-          {currentStatus === 'completed' && 'ขอบคุณที่ใช้บริการ! ♥'}
-          {currentStatus === 'cancelled' && 'ออเดอร์ถูกยกเลิก'}
-        </p>
+        <h3 className={`font-bold ${styles.textColor} text-lg`}>{styles.label}</h3>
+        <p className="text-sm text-slate-600 mt-1">{STATUS_DESCRIPTIONS[currentStatus]}</p>
       </div>
 
-      {/* Status Timeline */}
+      {/* Status Timeline - Using STATIC classes */}
       <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
         <h3 className="font-bold text-slate-800 mb-4">ไทม์ไลน์</h3>
         <div className="space-y-3">
-          {(['pending', 'confirmed', 'cooking', 'ready', 'completed'] as OrderStatus[]).map((status, index) => {
-            const config = STATUS_CONFIG[status];
-            const Icon = config.icon;
-            const isPast = ['pending', 'confirmed', 'cooking', 'ready', 'delivered', 'completed'].indexOf(currentStatus) >= index;
+          {TIMELINE_STEPS.map((status, index) => {
+            const stepStyles = STATUS_STYLES[status];
+            const Icon = stepStyles.icon;
+            const statusOrder = TIMELINE_STEPS.indexOf(currentStatus);
+            const isPast = statusOrder >= index;
             const isCurrent = currentStatus === status;
 
             return (
               <div key={status} className="flex items-center gap-3">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                  isCurrent ? `bg-${config.color}-500 text-white` : 
-                  isPast ? `bg-${config.color}-100 text-${config.color}-600` : 
+                  isCurrent ? stepStyles.timelineCurrent : 
+                  isPast ? stepStyles.timelinePast : 
                   'bg-slate-100 text-slate-400'
                 }`}>
                   <Icon size={16} />
                 </div>
                 <span className={`text-sm ${isCurrent ? 'font-bold text-slate-800' : isPast ? 'text-slate-600' : 'text-slate-400'}`}>
-                  {config.label}
+                  {stepStyles.label}
                 </span>
                 {isCurrent && (
                   <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full ml-auto">
@@ -246,7 +330,7 @@ export function OrderStatusPage({ orderId, onBack }: OrderStatusPageProps) {
             แชท
           </button>
           <a
-            href="tel:0841158342"
+            href={`tel:${STORE_INFO.phone.replace(/-/g, '')}`}
             className="flex-1 bg-white text-brand-600 border border-brand-600 font-medium py-3 rounded-xl flex items-center justify-center gap-2"
           >
             <Phone size={18} />

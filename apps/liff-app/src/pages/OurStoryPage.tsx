@@ -1,14 +1,5 @@
-import { ChevronRight, MapPin, Phone, Clock, Navigation, Heart, Quote } from 'lucide-react';
-
-// ข้อมูลร้าน
-const STORE_INFO = {
-  name: 'ตั้มพานิช',
-  hours: 'จันทร์ - เสาร์ 10:00 - 14:00 น.',
-  phone: '084-115-8342',
-  mapUrl: 'https://maps.app.goo.gl/Gs4BZZ9BJDAA44LH9',
-  lat: 14.584142066784167,
-  lng: 100.42882812383826,
-};
+import { Phone, Clock, Navigation, Heart, Quote } from 'lucide-react';
+import { STORE_INFO } from '../config/storeInfo';
 
 export function OurStoryPage() {
   const handleCall = () => {
