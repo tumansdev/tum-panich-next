@@ -132,6 +132,18 @@ export function CheckoutPage({ onBack, onOrderComplete }: CheckoutPageProps) {
   };
 
   const handleSubmit = async () => {
+    // Check if store is open first
+    try {
+      const storeStatus = await import('../lib/api').then(api => api.storeAPI.getStatus());
+      if (!storeStatus.isOpen) {
+        showDialog('error', 'ร้านปิดทำการ', storeStatus.message || 'ขออภัยครับ ร้านปิดทำการชั่วคราว กรุณาสั่งใหม่เมื่อร้านเปิด');
+        return;
+      }
+    } catch {
+      // If can't check status, proceed with order
+      console.warn('Could not check store status');
+    }
+
     // Validate name
     if (!form.name.trim()) {
       showDialog('warning', 'ข้อมูลไม่ครบถ้วน', 'กรุณากรอกชื่อผู้สั่งอาหารด้วยครับ');

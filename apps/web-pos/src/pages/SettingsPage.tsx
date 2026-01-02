@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Store, RefreshCw, Save, Power, Clock, MessageSquare } from 'lucide-react';
+import { Store, RefreshCw, Save, Power, Clock, MessageSquare, Edit2 } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://tumpanich.com';
 
@@ -8,11 +8,21 @@ interface StoreStatus {
   message: string;
 }
 
+interface StoreHours {
+  weekday: { open: string; close: string };
+  sunday: string;
+}
+
 export function SettingsPage() {
   const [storeStatus, setStoreStatus] = useState<StoreStatus>({ isOpen: true, message: '' });
+  const [storeHours, setStoreHours] = useState<StoreHours>({
+    weekday: { open: '10:00', close: '14:00' },
+    sunday: 'ปิด'
+  });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [closeMessage, setCloseMessage] = useState('');
+  const [editingHours, setEditingHours] = useState(false);
 
   // Fetch store status on mount
   useEffect(() => {
@@ -26,6 +36,10 @@ export function SettingsPage() {
       const data = await response.json();
       setStoreStatus(data);
       setCloseMessage(data.message || '');
+      // If hours are stored in backend, load them too
+      if (data.hours) {
+        setStoreHours(data.hours);
+      }
     } catch (error) {
       console.error('Failed to fetch store status:', error);
     } finally {
@@ -56,7 +70,7 @@ export function SettingsPage() {
   };
 
   const saveMessage = async () => {
-    if (storeStatus.isOpen) return; // Only save message when store is closed
+    if (storeStatus.isOpen) return;
     
     setSaving(true);
     try {
@@ -74,6 +88,11 @@ export function SettingsPage() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const saveHours = () => {
+    // For now, just save locally. Backend extension needed for persistent hours.
+    setEditingHours(false);
   };
 
   if (loading) {
@@ -140,7 +159,7 @@ export function SettingsPage() {
             </span>
           </div>
 
-          {/* Close Message (only when closed) */}
+          {/* Close Message */}
           {!storeStatus.isOpen && (
             <div className="space-y-3">
               <div className="flex items-center gap-2">
@@ -169,29 +188,82 @@ export function SettingsPage() {
       {/* Store Hours Card */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="p-6 border-b border-slate-100">
-          <div className="flex items-center gap-3">
-            <div className="p-3 rounded-xl bg-blue-100">
-              <Clock size={24} className="text-blue-600" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-3 rounded-xl bg-blue-100">
+                <Clock size={24} className="text-blue-600" />
+              </div>
+              <div>
+                <h3 className="font-bold text-lg text-slate-800">เวลาทำการ</h3>
+                <p className="text-sm text-slate-500">เวลาเปิด-ปิดร้าน</p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-bold text-lg text-slate-800">เวลาทำการ</h3>
-              <p className="text-sm text-slate-500">เวลาเปิด-ปิดร้าน</p>
-            </div>
+            <button
+              onClick={() => setEditingHours(!editingHours)}
+              className="p-2 hover:bg-slate-100 rounded-xl transition-colors"
+            >
+              <Edit2 size={18} className="text-slate-500" />
+            </button>
           </div>
         </div>
 
         <div className="p-6">
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div className="p-4 bg-slate-50 rounded-xl">
-              <p className="text-slate-500 mb-1">จันทร์ - เสาร์</p>
-              <p className="font-bold text-slate-800">08:00 - 14:00</p>
+          {editingHours ? (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">จันทร์ - เสาร์</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="time"
+                    value={storeHours.weekday.open}
+                    onChange={(e) => setStoreHours(prev => ({
+                      ...prev,
+                      weekday: { ...prev.weekday, open: e.target.value }
+                    }))}
+                    className="flex-1 p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500"
+                  />
+                  <span className="text-slate-500">-</span>
+                  <input
+                    type="time"
+                    value={storeHours.weekday.close}
+                    onChange={(e) => setStoreHours(prev => ({
+                      ...prev,
+                      weekday: { ...prev.weekday, close: e.target.value }
+                    }))}
+                    className="flex-1 p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">วันอาทิตย์</label>
+                <input
+                  type="text"
+                  value={storeHours.sunday}
+                  onChange={(e) => setStoreHours(prev => ({ ...prev, sunday: e.target.value }))}
+                  placeholder="ปิด หรือ เวลาเปิด-ปิด"
+                  className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500"
+                />
+              </div>
+              <button
+                onClick={saveHours}
+                className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-xl hover:bg-brand-700 transition-colors"
+              >
+                <Save size={18} />
+                บันทึกเวลา
+              </button>
             </div>
-            <div className="p-4 bg-slate-50 rounded-xl">
-              <p className="text-slate-500 mb-1">อาทิตย์</p>
-              <p className="font-bold text-red-600">ปิด</p>
+          ) : (
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="p-4 bg-slate-50 rounded-xl">
+                <p className="text-slate-500 mb-1">จันทร์ - เสาร์</p>
+                <p className="font-bold text-slate-800">{storeHours.weekday.open} - {storeHours.weekday.close}</p>
+              </div>
+              <div className="p-4 bg-slate-50 rounded-xl">
+                <p className="text-slate-500 mb-1">อาทิตย์</p>
+                <p className="font-bold text-red-600">{storeHours.sunday}</p>
+              </div>
             </div>
-          </div>
-          <p className="text-xs text-slate-400 mt-4">* แก้ไขเวลาทำการใน Database</p>
+          )}
         </div>
       </div>
 
