@@ -73,10 +73,10 @@ export function PrivacyPolicy({ onBack, onAccept }: PrivacyPolicyProps) {
 
         <Section title="6. การติดต่อ">
           <div className="bg-slate-50 rounded-xl p-4 space-y-3 mt-2">
-            <ContactItem icon={<Building size={16} />} label="ร้าน" value="ตั้มพานิช ข้าวหมูแดง" />
-            <ContactItem icon={<Phone size={16} />} label="โทร" value="035-611-XXX" />
+            <ContactItem icon={<Building size={16} />} label="ร้าน" value="ตั้มพานิช" />
+            <ContactItem icon={<Phone size={16} />} label="โทร" value="084-115-8342" />
             <ContactItem icon={<Mail size={16} />} label="Line OA" value="@tumpanich" />
-            <ContactItem icon={<MapPin size={16} />} label="ที่อยู่" value="อ.เมือง จ.อ่างทอง" />
+            <ContactItem icon={<MapPin size={16} />} label="ที่อยู่" value="14/3 หมู่ 7 ต.ศาลาแดง อ.เมือง จ.อ่างทอง" />
           </div>
         </Section>
 

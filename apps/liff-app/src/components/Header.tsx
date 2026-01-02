@@ -61,23 +61,23 @@ export function Header({ title, subtitle, view, onBack, profile, activeTab, stor
             )}
           </div>
 
-          {/* Store Status Badge - Below profile row */}
+          {/* Store Status Badge - Inline pill */}
           {storeStatus && (
-            <div className="flex justify-end mb-2 -mt-2">
-              <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold ${
+            <div className="flex items-center gap-2 mb-3">
+              <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold ${
                 storeStatus.isOpen 
-                  ? 'bg-green-500/20 text-green-200 border border-green-400/30' 
-                  : 'bg-red-500/20 text-red-200 border border-red-400/30'
+                  ? 'bg-green-500 text-white' 
+                  : 'bg-red-500 text-white'
               }`}>
-                <div className={`w-2 h-2 rounded-full ${storeStatus.isOpen ? 'bg-green-400 animate-pulse' : 'bg-red-400'}`} />
-                {storeStatus.isOpen ? 'เปิด' : 'ปิด'}
-                {storeStatus.isOpen && storeStatus.minutesUntilClose != null && storeStatus.minutesUntilClose > 0 && storeStatus.minutesUntilClose <= 60 && (
-                  <span className="flex items-center gap-1 ml-1 text-amber-200">
-                    <Clock size={10} />
-                    {storeStatus.minutesUntilClose} นาที
-                  </span>
-                )}
+                <div className={`w-1.5 h-1.5 rounded-full bg-white ${storeStatus.isOpen ? 'animate-pulse' : ''}`} />
+                {storeStatus.isOpen ? 'เปิดบริการ' : 'ปิดบริการ'}
               </div>
+              {storeStatus.isOpen && storeStatus.minutesUntilClose != null && storeStatus.minutesUntilClose > 0 && storeStatus.minutesUntilClose <= 60 && (
+                <span className="text-[10px] text-amber-200 flex items-center gap-1">
+                  <Clock size={10} />
+                  ปิดใน {storeStatus.minutesUntilClose} นาที
+                </span>
+              )}
             </div>
           )}
           
