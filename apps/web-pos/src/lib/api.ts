@@ -1,7 +1,74 @@
 // API client for Tum Panich Admin Panel
 import { getAuthToken } from '../stores/authStore';
+import { Order, MenuItem, Category, OrderStatus } from '../types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://tumpanich.com';
+
+// API response types (snake_case from backend)
+interface APIOrder {
+  id: string;
+  items: string | object[];
+  total_amount: string | number;
+  status: OrderStatus;
+  customer_name: string;
+  customer_phone: string;
+  delivery_type: string;
+  delivery_address?: string;
+  landmark?: string;
+  payment_method: 'cash' | 'promptpay';
+  payment_status: 'pending' | 'paid' | 'confirmed';
+  slip_image_url?: string;
+  line_user_id?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface APIMenuItem {
+  id: string;
+  name: string;
+  description?: string;
+  price: number;
+  image_url?: string;
+  category_id: string;
+  available: boolean;
+  is_special?: boolean;
+}
+
+interface APICategory {
+  id: string;
+  name: string;
+  icon?: string;
+  sort_order?: number;
+}
+
+interface APIAnnouncement {
+  id: number;
+  day_of_week: number;
+  menu_name: string;
+  emoji?: string;
+  active: boolean;
+}
+
+// Utility function to map API order to frontend format
+export function mapOrderFromAPI(o: APIOrder): Order {
+  return {
+    id: o.id,
+    items: typeof o.items === 'string' ? JSON.parse(o.items) : o.items,
+    totalAmount: typeof o.total_amount === 'string' ? parseFloat(o.total_amount) : o.total_amount,
+    status: o.status,
+    customerName: o.customer_name,
+    customerPhone: o.customer_phone,
+    deliveryType: o.delivery_type as Order['deliveryType'],
+    deliveryAddress: o.delivery_address,
+    landmark: o.landmark,
+    paymentMethod: o.payment_method,
+    paymentStatus: o.payment_status,
+    slipImage: o.slip_image_url,
+    lineUserId: o.line_user_id,
+    createdAt: o.created_at,
+    updatedAt: o.updated_at,
+  };
+}
 
 // Fetch wrapper with error handling and JWT auth
 async function fetchAPI<T>(
@@ -29,29 +96,29 @@ async function fetchAPI<T>(
 
 // Menu API (Admin)
 export const menuAPI = {
-  getAll: () => fetchAPI<any[]>('/api/menu'),
+  getAll: () => fetchAPI<APIMenuItem[]>('/api/menu'),
   
-  getById: (id: string) => fetchAPI<any>(`/api/menu/${id}`),
+  getById: (id: string) => fetchAPI<APIMenuItem>(`/api/menu/${id}`),
   
-  create: (item: any) =>
-    fetchAPI<any>('/api/menu', {
+  create: (item: Partial<MenuItem>) =>
+    fetchAPI<APIMenuItem>('/api/menu', {
       method: 'POST',
       body: JSON.stringify(item),
     }),
   
-  update: (id: string, data: any) =>
-    fetchAPI<any>(`/api/menu/${id}`, {
+  update: (id: string, data: Partial<MenuItem>) =>
+    fetchAPI<APIMenuItem>(`/api/menu/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     }),
   
   delete: (id: string) =>
-    fetchAPI<any>(`/api/menu/${id}`, {
+    fetchAPI<{ success: boolean }>(`/api/menu/${id}`, {
       method: 'DELETE',
     }),
   
   toggle: (id: string) =>
-    fetchAPI<any>(`/api/menu/${id}/toggle`, {
+    fetchAPI<APIMenuItem>(`/api/menu/${id}/toggle`, {
       method: 'PUT',
     }),
   
@@ -68,22 +135,22 @@ export const menuAPI = {
       throw new Error('Failed to upload image');
     }
 
-    return response.json();
+    return response.json() as Promise<{ url: string }>;
   },
 };
 
 // Categories API (Admin)
 export const categoriesAPI = {
-  getAll: () => fetchAPI<any[]>('/api/categories'),
+  getAll: () => fetchAPI<APICategory[]>('/api/categories'),
   
-  create: (category: any) =>
-    fetchAPI<any>('/api/categories', {
+  create: (category: Partial<Category>) =>
+    fetchAPI<APICategory>('/api/categories', {
       method: 'POST',
       body: JSON.stringify(category),
     }),
   
-  update: (id: string, data: any) =>
-    fetchAPI<any>(`/api/categories/${id}`, {
+  update: (id: string, data: Partial<Category>) =>
+    fetchAPI<APICategory>(`/api/categories/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     }),
@@ -95,15 +162,15 @@ export const ordersAPI = {
     const query = new URLSearchParams();
     if (params?.status) query.set('status', params.status);
     if (params?.limit) query.set('limit', String(params.limit));
-    return fetchAPI<any[]>(`/api/orders?${query.toString()}`);
+    return fetchAPI<APIOrder[]>(`/api/orders?${query.toString()}`);
   },
   
-  getById: (id: string) => fetchAPI<any>(`/api/orders/${id}`),
+  getById: (id: string) => fetchAPI<APIOrder>(`/api/orders/${id}`),
   
-  getHistory: (id: string) => fetchAPI<any[]>(`/api/orders/${id}/history`),
+  getHistory: (id: string) => fetchAPI<{ status: string; changed_at: string }[]>(`/api/orders/${id}/history`),
   
-  updateStatus: (id: string, status: string) =>
-    fetchAPI<any>(`/api/orders/${id}/status`, {
+  updateStatus: (id: string, status: OrderStatus) =>
+    fetchAPI<APIOrder>(`/api/orders/${id}/status`, {
       method: 'PUT',
       body: JSON.stringify({ status }),
     }),
@@ -111,16 +178,16 @@ export const ordersAPI = {
 
 // Announcements API (Admin)
 export const announcementsAPI = {
-  getAll: () => fetchAPI<any[]>('/api/announcements'),
+  getAll: () => fetchAPI<APIAnnouncement[]>('/api/announcements'),
   
-  update: (announcements: any[]) =>
-    fetchAPI<any[]>('/api/announcements', {
+  update: (announcements: Partial<APIAnnouncement>[]) =>
+    fetchAPI<APIAnnouncement[]>('/api/announcements', {
       method: 'PUT',
       body: JSON.stringify({ announcements }),
     }),
   
-  updateDay: (dayOfWeek: number, data: any) =>
-    fetchAPI<any>(`/api/announcements/${dayOfWeek}`, {
+  updateDay: (dayOfWeek: number, data: Partial<APIAnnouncement>) =>
+    fetchAPI<APIAnnouncement>(`/api/announcements/${dayOfWeek}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     }),

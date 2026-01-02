@@ -1,0 +1,25 @@
+{
+  "name": "@tum-panich/shared-types",
+  "version": "1.0.0",
+  "description": "Shared TypeScript types for POS and LIFF apps",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./api": {
+      "types": "./dist/api.d.ts",
+      "import": "./dist/api.js"
+    }
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

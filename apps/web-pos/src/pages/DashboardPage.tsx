@@ -109,16 +109,27 @@ export function DashboardPage() {
               <div className="flex items-center gap-3">
                 {/* Test Sound - เพื่อ unlock browser autoplay */}
                 <button
-                  onClick={() => {
+                  onClick={(e) => {
+                    const btn = e.currentTarget;
+                    const originalText = btn.textContent;
                     // เล่นเสียงทดสอบเพื่อ unlock browser autoplay
                     const audio = new Audio('/admin/sounds/notification.mp3');
                     audio.volume = 0.5;
                     audio.play().then(() => {
                       setTimeout(() => audio.pause(), 1000);
-                      alert('✅ เสียงทำงานปกติ! เมื่อมีออเดอร์ใหม่จะได้ยินเสียงแจ้งเตือน');
-                    }).catch((e) => {
-                      console.error('Audio error:', e);
-                      alert('❌ ไม่สามารถเล่นเสียงได้ กรุณาตรวจสอบ:\n1. เปิดเสียงลำโพง\n2. ไม่ได้ปิดเสียงหน้าเว็บ');
+                      btn.textContent = '✅ เสียง OK!';
+                      btn.className = 'px-3 py-2 bg-green-500 text-white rounded-xl text-sm font-medium';
+                      setTimeout(() => {
+                        btn.textContent = originalText;
+                        btn.className = 'px-3 py-2 bg-amber-500 text-white rounded-xl hover:bg-amber-600 text-sm font-medium';
+                      }, 2000);
+                    }).catch(() => {
+                      btn.textContent = '❌ เสียงไม่ทำงาน';
+                      btn.className = 'px-3 py-2 bg-red-500 text-white rounded-xl text-sm font-medium';
+                      setTimeout(() => {
+                        btn.textContent = originalText;
+                        btn.className = 'px-3 py-2 bg-amber-500 text-white rounded-xl hover:bg-amber-600 text-sm font-medium';
+                      }, 2000);
                     });
                   }}
                   className="px-3 py-2 bg-amber-500 text-white rounded-xl hover:bg-amber-600 text-sm font-medium"

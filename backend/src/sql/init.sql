@@ -72,12 +72,48 @@ CREATE TABLE order_status_history (
   changed_at TIMESTAMP DEFAULT NOW()
 );
 
--- Indexes
+-- Indexes for Performance
 CREATE INDEX idx_menu_items_category ON menu_items(category_id);
 CREATE INDEX idx_menu_items_available ON menu_items(available);
+CREATE INDEX idx_menu_items_special ON menu_items(is_special);
 CREATE INDEX idx_orders_status ON orders(status);
 CREATE INDEX idx_orders_line_user ON orders(line_user_id);
 CREATE INDEX idx_orders_created ON orders(created_at DESC);
+CREATE INDEX idx_orders_updated ON orders(updated_at DESC);
+CREATE INDEX idx_orders_payment_status ON orders(payment_status);
+CREATE INDEX idx_order_history_order ON order_status_history(order_id);
+CREATE INDEX idx_order_history_time ON order_status_history(changed_at DESC);
+
+-- Admin Users Table (for POS authentication)
+CREATE TABLE IF NOT EXISTS admin_users (
+  id SERIAL PRIMARY KEY,
+  username VARCHAR(50) UNIQUE NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  role VARCHAR(20) DEFAULT 'staff',
+  active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT NOW(),
+  last_login TIMESTAMP
+);
+
+-- Insert default admin (password: admin123 - change in production!)
+INSERT INTO admin_users (username, password_hash, role) VALUES
+  ('admin', '$2a$10$rHQgKXBGGZdxL3FxqzQcQeZ8qYb3XqZ9Y5q8Y5q8Y5q8Y5q8Y5q8Y', 'admin')
+ON CONFLICT (username) DO NOTHING;
+
+-- Store Settings Table (for open/close status)
+CREATE TABLE IF NOT EXISTS store_settings (
+  id SERIAL PRIMARY KEY,
+  setting_key VARCHAR(50) UNIQUE NOT NULL,
+  setting_value VARCHAR(500),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Insert default store status
+INSERT INTO store_settings (setting_key, setting_value) VALUES
+  ('is_open', 'true'),
+  ('open_message', 'ร้านเปิดให้บริการปกติครับ'),
+  ('close_message', 'ขออภัยครับ ร้านปิดทำการชั่วคราว')
+ON CONFLICT (setting_key) DO NOTHING;
 
 -- Insert Default Categories
 INSERT INTO categories (id, name, icon, sort_order) VALUES

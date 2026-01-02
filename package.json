@@ -10,5 +10,11 @@
     "dev:liff": "npm run dev --workspace=@tum-panich/liff-app",
     "dev:backend": "npm run dev --workspace=@tum-panich/backend",
     "build": "npm run build --workspaces"
+  },
+  "dependencies": {
+    "compression": "^1.8.1",
+    "express-rate-limit": "^8.2.1",
+    "helmet": "^8.1.0",
+    "zod": "^4.3.4"
   }
 }

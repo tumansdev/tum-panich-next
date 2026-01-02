@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { io, Socket } from 'socket.io-client';
 import { Order, OrderStatus } from '../types';
-import { ordersAPI } from '../lib/api';
+import { ordersAPI, mapOrderFromAPI } from '../lib/api';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://tumpanich.com';
 
@@ -49,24 +49,8 @@ export const useOrderStore = create<OrderState>()(
         set({ loading: true });
         try {
           const orders = await ordersAPI.getAll();
-          // Map API response to frontend format
-          const mappedOrders = orders.map((o: any) => ({
-            id: o.id,
-            items: typeof o.items === 'string' ? JSON.parse(o.items) : o.items,
-            totalAmount: parseFloat(o.total_amount),
-            status: o.status,
-            customerName: o.customer_name,
-            customerPhone: o.customer_phone,
-            deliveryType: o.delivery_type,
-            deliveryAddress: o.delivery_address,
-            landmark: o.landmark,
-            paymentMethod: o.payment_method,
-            paymentStatus: o.payment_status,
-            slipImage: o.slip_image_url,
-            lineUserId: o.line_user_id,
-            createdAt: o.created_at,
-            updatedAt: o.updated_at,
-          }));
+          // Use shared mapping function
+          const mappedOrders = orders.map(mapOrderFromAPI);
           set({ orders: mappedOrders, loading: false });
         } catch (error) {
           console.error('Failed to fetch orders:', error);
@@ -78,8 +62,8 @@ export const useOrderStore = create<OrderState>()(
         const state = get();
         // เล่นเสียงเฉพาะเมื่อเปิดเสียงไว้
         if (state.soundEnabled && notificationAudio) {
-          notificationAudio.play().catch((e) => {
-            console.log('Audio play failed:', e);
+          notificationAudio.play().catch(() => {
+            // Silently fail if audio can't play
           });
           set({ orders: [order, ...state.orders], isPlaying: true });
         } else {
@@ -136,34 +120,25 @@ export const useOrderStore = create<OrderState>()(
         });
 
         socket.on('connect', () => {
-          console.log('Socket connected:', socket.id);
+          if (import.meta.env.DEV) {
+            console.debug('Socket connected:', socket.id);
+          }
           socket.emit('join_admin');
         });
 
-        socket.on('new_order', (order: any) => {
-          console.log('New order received:', order);
-          const mappedOrder = {
-            id: order.id,
-            items: typeof order.items === 'string' ? JSON.parse(order.items) : order.items,
-            totalAmount: parseFloat(order.total_amount),
-            status: order.status,
-            customerName: order.customer_name,
-            customerPhone: order.customer_phone,
-            deliveryType: order.delivery_type,
-            deliveryAddress: order.delivery_address,
-            landmark: order.landmark,
-            paymentMethod: order.payment_method,
-            paymentStatus: order.payment_status,
-            slipImage: order.slip_image_url,
-            lineUserId: order.line_user_id,
-            createdAt: order.created_at,
-            updatedAt: order.updated_at,
-          };
+        socket.on('new_order', (order: unknown) => {
+          if (import.meta.env.DEV) {
+            console.debug('New order received:', order);
+          }
+          // Use shared mapping function
+          const mappedOrder = mapOrderFromAPI(order as Parameters<typeof mapOrderFromAPI>[0]);
           get().addOrder(mappedOrder);
         });
 
-        socket.on('order_updated', (order: any) => {
-          console.log('Order updated:', order);
+        socket.on('order_updated', (order: { id: string; status: OrderStatus; updated_at: string }) => {
+          if (import.meta.env.DEV) {
+            console.debug('Order updated:', order);
+          }
           set((state) => ({
             orders: state.orders.map((o) =>
               o.id === order.id ? { ...o, status: order.status, updatedAt: order.updated_at } : o
@@ -172,7 +147,9 @@ export const useOrderStore = create<OrderState>()(
         });
 
         socket.on('disconnect', () => {
-          console.log('Socket disconnected');
+          if (import.meta.env.DEV) {
+            console.debug('Socket disconnected');
+          }
         });
 
         set({ socket });

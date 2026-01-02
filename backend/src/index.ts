@@ -4,6 +4,9 @@ import { Server, Socket } from 'socket.io';
 import cors from 'cors';
 import path from 'path';
 import dotenv from 'dotenv';
+import helmet from 'helmet';
+import compression from 'compression';
+import rateLimit from 'express-rate-limit';
 
 // Load environment variables
 dotenv.config();
@@ -21,7 +24,44 @@ import pool from './db';
 const app = express();
 const httpServer = createServer(app);
 
-// CORS Configuration - Whitelist specific origins
+// ======================
+// SECURITY CONFIGURATION
+// ======================
+
+// Helmet - Security Headers
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }, // Allow images from uploads
+  contentSecurityPolicy: false, // Disable for API server
+}));
+
+// Compression - Gzip responses
+app.use(compression());
+
+// Rate Limiting - Prevent DDoS/Brute Force
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: { error: 'Too many requests, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Stricter rate limit for auth routes
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // Only 10 login attempts per window
+  message: { error: 'Too many login attempts, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Apply general rate limit to all requests
+app.use(generalLimiter);
+
+// ======================
+// CORS CONFIGURATION
+// ======================
+
 const ALLOWED_ORIGINS = [
   'https://tumpanich.com',
   'https://www.tumpanich.com',
@@ -59,13 +99,16 @@ app.use(cors({
   credentials: true,
 }));
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' })); // Limit body size
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Static files for uploads
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
-// Health Check
+// ======================
+// HEALTH CHECK
+// ======================
+
 app.get('/', (_req: Request, res: Response) => {
   res.send('Tum Panich API is running');
 });
@@ -83,8 +126,14 @@ app.get('/api/health', async (_req: Request, res: Response) => {
   }
 });
 
-// Public API Routes (no auth required)
-app.use('/api/auth', authRoutes);
+// ======================
+// API ROUTES
+// ======================
+
+// Auth routes with stricter rate limit
+app.use('/api/auth', authLimiter, authRoutes);
+
+// Public API Routes
 app.use('/api/menu', menuRoutes);
 app.use('/api/categories', categoriesRoutes);
 app.use('/api/orders', ordersRoutes);
@@ -94,14 +143,18 @@ app.use('/api/store', storeRoutes);
 // LINE Webhook (uses raw body parser, must be before JSON parser on this route)
 app.use('/api/webhook', webhookRoutes);
 
-// Socket.IO Connection Handling
+// ======================
+// SOCKET.IO
+// ======================
+
 io.on('connection', (socket: Socket) => {
-  console.log('Client connected:', socket.id);
+  if (process.env.NODE_ENV === 'development') {
+    console.debug('Client connected:', socket.id);
+  }
 
   // Join order room for status updates
   socket.on('join_order', (orderId: string) => {
     socket.join(`order_${orderId}`);
-    console.log(`Socket ${socket.id} joined order_${orderId}`);
   });
 
   // Leave order room
@@ -112,26 +165,56 @@ io.on('connection', (socket: Socket) => {
   // Admin room for all order updates
   socket.on('join_admin', () => {
     socket.join('admin');
-    console.log(`Socket ${socket.id} joined admin room`);
   });
 
   socket.on('disconnect', () => {
-    console.log('Client disconnected:', socket.id);
+    if (process.env.NODE_ENV === 'development') {
+      console.debug('Client disconnected:', socket.id);
+    }
   });
 });
 
-// Error handling middleware
+// ======================
+// ERROR HANDLING
+// ======================
+
 app.use((err: Error, _req: Request, res: Response, _next: express.NextFunction) => {
   console.error('Error:', err.message);
-  res.status(500).json({ error: err.message });
+  res.status(500).json({ error: 'Internal server error' }); // Don't expose error details
 });
 
-// Start server
+// ======================
+// GRACEFUL SHUTDOWN
+// ======================
+
+function gracefulShutdown(signal: string) {
+  console.log(`\n${signal} received. Closing HTTP server...`);
+  httpServer.close(() => {
+    console.log('HTTP server closed.');
+    pool.end(() => {
+      console.log('Database pool closed.');
+      process.exit(0);
+    });
+  });
+
+  // Force close after 10s
+  setTimeout(() => {
+    console.error('Forcing shutdown...');
+    process.exit(1);
+  }, 10000);
+}
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+// ======================
+// START SERVER
+// ======================
+
 httpServer.listen(port, () => {
   console.log(`🚀 Server running on port ${port}`);
   console.log(`📁 Uploads directory: ${path.join(process.cwd(), 'uploads')}`);
-  console.log(`🔒 CORS origins: ${ALLOWED_ORIGINS.join(', ')}`);
+  console.log(`🔒 Security: Helmet + Rate Limiting + Compression enabled`);
 });
 
 export { io };
-

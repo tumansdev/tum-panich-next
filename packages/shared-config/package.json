@@ -1,0 +1,21 @@
+{
+  "name": "@tum-panich/shared-config",
+  "version": "1.0.0",
+  "description": "Shared configuration for POS and LIFF apps",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

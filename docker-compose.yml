@@ -38,8 +38,9 @@ services:
     restart: always
     environment:
       - PORT=3000
-      - DATABASE_URL=postgresql://postgres:password@db:5432/tum_panich?schema=public
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:-TumPanich2026!}@db:5432/tum_panich?schema=public
       - NODE_ENV=production
+      - JWT_SECRET=${JWT_SECRET:-your-jwt-secret-change-me}
       - LINE_CHANNEL_SECRET=${LINE_CHANNEL_SECRET}
       - LINE_CHANNEL_ACCESS_TOKEN=${LINE_CHANNEL_ACCESS_TOKEN}
     volumes:
@@ -76,7 +77,7 @@ services:
     restart: always
     environment:
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-TumPanich2026!}
       - POSTGRES_DB=tum_panich
     volumes:
       - postgres_data:/var/lib/postgresql/data
