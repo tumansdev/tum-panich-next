@@ -15,7 +15,8 @@ import { noodleOptions } from './config/menuOptions';
 import { useCartStore } from './stores/cartStore';
 import { Loading } from './components/ui/Loading';
 import { Dialog } from './components/ui/Dialog';
-import { storeAPI } from './lib/api';
+import { storeAPI, StoreStatusResponse, SpecialMenuResponse } from './lib/api';
+import { SpecialPopup } from './components/SpecialPopup';
 import { X } from 'lucide-react';
 
 type Tab = 'home' | 'orders' | 'cart' | 'story' | 'profile';
@@ -43,8 +44,12 @@ function App() {
   const addItem = useCartStore((state) => state.addItem);
 
   // Store Status
-  const [storeStatus, setStoreStatus] = useState({ isOpen: true, message: '' });
+  const [storeStatus, setStoreStatus] = useState<StoreStatusResponse | null>(null);
   const [showStoreDialog, setShowStoreDialog] = useState(false);
+  
+  // Special Menu Popup
+  const [specialMenu, setSpecialMenu] = useState<SpecialMenuResponse | null>(null);
+  const [showSpecialPopup, setShowSpecialPopup] = useState(false);
 
   // Initialize LIFF
   useEffect(() => {
@@ -68,6 +73,14 @@ function App() {
     storeAPI.getStatus().then(status => {
       setStoreStatus(status);
     });
+    
+    // Check special menu
+    storeAPI.getSpecialMenu().then(menu => {
+      if (menu.active) {
+        setSpecialMenu(menu);
+        setShowSpecialPopup(true);
+      }
+    }).catch(() => {});
   }, []);
 
   const handleTabChange = (tab: Tab) => {
@@ -107,7 +120,7 @@ function App() {
   };
 
   const handleSelectProduct = (product: Product) => {
-    if (!storeStatus.isOpen) {
+    if (storeStatus && !storeStatus.isOpen) {
       setShowStoreDialog(true);
       return;
     }
@@ -129,8 +142,9 @@ function App() {
         ...tabTitles[activeTab],
         view: 'main' as View,
         onBack: undefined,
-        profile: profile, // Pass profile for Hero Header
-        activeTab: activeTab, // Pass activeTab to control Hero Header display
+        profile: profile,
+        activeTab: activeTab,
+        storeStatus: storeStatus || undefined,
       };
     }
     return {
@@ -153,6 +167,16 @@ function App() {
 
   return (
     <div className="min-h-screen bg-amber-50 flex flex-col">
+      {/* Special Menu Popup */}
+      {showSpecialPopup && specialMenu && (
+        <SpecialPopup
+          title={specialMenu.title}
+          description={specialMenu.description}
+          emoji={specialMenu.emoji}
+          onClose={() => setShowSpecialPopup(false)}
+        />
+      )}
+
       {/* Header - Always Visible */}
       <Header {...headerConfig} />
 

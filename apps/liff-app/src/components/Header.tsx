@@ -1,7 +1,13 @@
-import { ArrowLeft, User } from 'lucide-react';
+import { ArrowLeft, User, Clock } from 'lucide-react';
 import { LiffProfile } from '../types';
 
 type View = 'main' | 'checkout' | 'order-status' | 'menu';
+
+interface StoreStatusData {
+  isOpen: boolean;
+  message?: string;
+  minutesUntilClose?: number | null;
+}
 
 interface HeaderProps {
   title?: string;
@@ -10,6 +16,7 @@ interface HeaderProps {
   onBack?: () => void;
   profile?: LiffProfile | null;
   activeTab?: string;
+  storeStatus?: StoreStatusData;
 }
 
 // View titles configuration
@@ -20,7 +27,7 @@ const viewTitles: Record<View, { title: string; subtitle?: string }> = {
   menu: { title: 'เมนูทั้งหมด', subtitle: 'เลือกเมนูโปรด' },
 };
 
-export function Header({ title, subtitle, view, onBack, profile, activeTab }: HeaderProps) {
+export function Header({ title, subtitle, view, onBack, profile, activeTab, storeStatus }: HeaderProps) {
   const isHeroMode = view === 'main' && activeTab === 'home';
   const viewConfig = viewTitles[view];
   const displayTitle = title || viewConfig.title;
@@ -34,6 +41,26 @@ export function Header({ title, subtitle, view, onBack, profile, activeTab }: He
         <div className="absolute bottom-0 left-0 w-40 h-40 bg-black/10 rounded-full translate-y-1/3 -translate-x-1/4 blur-xl"></div>
 
         <div className="px-6 pt-8 pb-16 relative z-10">
+          {/* Store Status Badge */}
+          {storeStatus && (
+            <div className="absolute top-3 right-3">
+              <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold ${
+                storeStatus.isOpen 
+                  ? 'bg-green-500/20 text-green-200 border border-green-400/30' 
+                  : 'bg-red-500/20 text-red-200 border border-red-400/30'
+              }`}>
+                <div className={`w-2 h-2 rounded-full ${storeStatus.isOpen ? 'bg-green-400 animate-pulse' : 'bg-red-400'}`} />
+                {storeStatus.isOpen ? 'เปิด' : 'ปิด'}
+                {storeStatus.isOpen && storeStatus.minutesUntilClose && storeStatus.minutesUntilClose <= 60 && (
+                  <span className="flex items-center gap-1 ml-1 text-amber-200">
+                    <Clock size={10} />
+                    {storeStatus.minutesUntilClose} นาที
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
           <div className="flex justify-between items-start mb-4">
             <div>
               <p className="text-brand-100 text-sm font-medium mb-1">ยินดีต้อนรับ 👋</p>

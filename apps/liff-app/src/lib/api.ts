@@ -72,8 +72,29 @@ export const announcementsAPI = {
 };
 
 // Store Status API
+export interface StoreStatusResponse {
+  isOpen: boolean;
+  message: string;
+  closeTime: string | null;
+  closeTimeStr: string | null;
+  minutesUntilClose: number | null;
+  isSunday: boolean;
+  hours: {
+    weekday: { open: string; close: string };
+    sunday: string;
+  };
+}
+
+export interface SpecialMenuResponse {
+  active: boolean;
+  title: string;
+  description: string;
+  emoji: string;
+}
+
 export const storeAPI = {
-  getStatus: () => fetchAPI<{ isOpen: boolean; message: string }>('/api/store/status'),
+  getStatus: () => fetchAPI<StoreStatusResponse>('/api/store/status'),
+  getSpecialMenu: () => fetchAPI<SpecialMenuResponse>('/api/store/special-menu'),
 };
 
 export default {
