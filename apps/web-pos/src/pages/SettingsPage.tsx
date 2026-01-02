@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import { useState, useEffect } from 'react';
 import { Store, RefreshCw, Save, Power, Clock, MessageSquare, Edit2, Megaphone, Sparkles } from 'lucide-react';
 
