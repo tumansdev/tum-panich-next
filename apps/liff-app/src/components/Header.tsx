@@ -71,7 +71,7 @@ export function Header({ title, subtitle, view, onBack, profile, activeTab, stor
               }`}>
                 <div className={`w-2 h-2 rounded-full ${storeStatus.isOpen ? 'bg-green-400 animate-pulse' : 'bg-red-400'}`} />
                 {storeStatus.isOpen ? 'เปิด' : 'ปิด'}
-                {storeStatus.isOpen && storeStatus.minutesUntilClose && storeStatus.minutesUntilClose <= 60 && (
+                {storeStatus.isOpen && storeStatus.minutesUntilClose != null && storeStatus.minutesUntilClose > 0 && storeStatus.minutesUntilClose <= 60 && (
                   <span className="flex items-center gap-1 ml-1 text-amber-200">
                     <Clock size={10} />
                     {storeStatus.minutesUntilClose} นาที
