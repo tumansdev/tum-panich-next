@@ -16,6 +16,7 @@ export function ProfilePage({ profile }: ProfilePageProps) {
   const [tempPhone, setTempPhone] = useState(info.phone);
   const [tempAddress, setTempAddress] = useState(info.address);
   const [tempLandmark, setTempLandmark] = useState(info.landmark);
+  const [showHelp, setShowHelp] = useState(false);
 
   const saveName = () => {
     updateInfo({ name: tempName });
@@ -78,25 +79,70 @@ export function ProfilePage({ profile }: ProfilePageProps) {
 
       {/* ===== QUICK ACTIONS ===== */}
       <div className="grid grid-cols-3 gap-3">
-        <button className="flex flex-col items-center justify-center p-4 bg-white rounded-2xl shadow-sm border border-slate-100 hover:border-brand-200 transition-all">
+        <button 
+          onClick={() => alert('ฟีเจอร์รายการโปรดจะเปิดให้บริการเร็วๆ นี้!')}
+          className="flex flex-col items-center justify-center p-4 bg-white rounded-2xl shadow-sm border border-slate-100 hover:border-brand-200 hover:bg-brand-50 transition-all active:scale-95"
+        >
           <div className="w-10 h-10 bg-brand-50 rounded-xl flex items-center justify-center mb-2">
             <Heart size={20} className="text-brand-600" />
           </div>
           <span className="text-xs font-medium text-slate-700">รายการโปรด</span>
         </button>
-        <button className="flex flex-col items-center justify-center p-4 bg-white rounded-2xl shadow-sm border border-slate-100 hover:border-blue-200 transition-all">
+        <button 
+          onClick={() => {
+            // Open LINE OA @tumpanich
+            window.open('https://line.me/R/ti/p/@tumpanich', '_blank');
+          }}
+          className="flex flex-col items-center justify-center p-4 bg-white rounded-2xl shadow-sm border border-slate-100 hover:border-blue-200 hover:bg-blue-50 transition-all active:scale-95"
+        >
           <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center mb-2">
             <MessageCircle size={20} className="text-blue-600" />
           </div>
           <span className="text-xs font-medium text-slate-700">ติดต่อเรา</span>
         </button>
-        <button className="flex flex-col items-center justify-center p-4 bg-white rounded-2xl shadow-sm border border-slate-100 hover:border-amber-200 transition-all">
+        <button 
+          onClick={() => setShowHelp(!showHelp)}
+          className="flex flex-col items-center justify-center p-4 bg-white rounded-2xl shadow-sm border border-slate-100 hover:border-amber-200 hover:bg-amber-50 transition-all active:scale-95"
+        >
           <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center mb-2">
             <HelpCircle size={20} className="text-amber-600" />
           </div>
           <span className="text-xs font-medium text-slate-700">ช่วยเหลือ</span>
         </button>
       </div>
+
+      {/* ===== HELP FAQ SECTION ===== */}
+      {showHelp && (
+        <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 space-y-3 animate-fade-in">
+          <div className="flex items-center justify-between">
+            <h3 className="font-bold text-slate-800 flex items-center gap-2">
+              <HelpCircle size={18} className="text-amber-500" />
+              คำถามที่พบบ่อย
+            </h3>
+            <button onClick={() => setShowHelp(false)} className="text-slate-400 hover:text-slate-600">
+              <ChevronRight size={20} className="rotate-90" />
+            </button>
+          </div>
+          <div className="space-y-2 text-sm">
+            <FAQItem 
+              q="สั่งอาหารอย่างไร?" 
+              a="กดเมนูที่ต้องการ → เพิ่มลงตะกร้า → ไปหน้าชำระเงิน → กรอกข้อมูล → โอนเงิน → อัพโหลดสลิป" 
+            />
+            <FAQItem 
+              q="ร้านเปิดกี่โมง?" 
+              a="จันทร์-เสาร์ 10:00-14:00 น. (อาทิตย์หยุด)" 
+            />
+            <FAQItem 
+              q="ส่งฟรีหรือเปล่า?" 
+              a="ส่งฟรีภายในรัศมี 2 กม. จากร้าน หากเกิน 2 กม. จะคิดค่าส่งตามจริงกับไรเดอร์" 
+            />
+            <FAQItem 
+              q="ติดต่อร้านได้ที่ไหน?" 
+              a="โทร 084-115-8342 หรือ LINE OA @tumpanich" 
+            />
+          </div>
+        </div>
+      )}
 
       {/* ===== MY INFORMATION SECTION ===== */}
       <div className="space-y-3">
@@ -246,6 +292,25 @@ export function ProfilePage({ profile }: ProfilePageProps) {
           ตั้มพานิช LIFF App v1.0.0 🍜
         </p>
       </div>
+    </div>
+  );
+}
+
+// FAQ Item Component
+function FAQItem({ q, a }: { q: string; a: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="border-b border-slate-100 last:border-0 pb-2 last:pb-0">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between py-2 text-left"
+      >
+        <span className="font-medium text-slate-700">{q}</span>
+        <ChevronRight size={16} className={`text-slate-400 transition-transform ${open ? 'rotate-90' : ''}`} />
+      </button>
+      {open && (
+        <p className="text-slate-500 pl-2 pb-2 text-xs leading-relaxed">{a}</p>
+      )}
     </div>
   );
 }
