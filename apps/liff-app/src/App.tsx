@@ -83,18 +83,30 @@ function App() {
     }
     init();
     
-    // Check store status
-    storeAPI.getStatus().then(status => {
-      setStoreStatus(status);
-    });
+    // Check store status - initial fetch
+    const fetchStoreStatus = () => {
+      storeAPI.getStatus().then(status => {
+        setStoreStatus(status);
+      }).catch(() => {});
+    };
     
-    // Check special menu
+    fetchStoreStatus();
+    
+    // ⏱️ Realtime polling every 30 seconds
+    const storeStatusInterval = setInterval(fetchStoreStatus, 30000);
+    
+    // Check special menu (only once)
     storeAPI.getSpecialMenu().then(menu => {
       if (menu.active) {
         setSpecialMenu(menu);
         setShowSpecialPopup(true);
       }
     }).catch(() => {});
+    
+    // Cleanup
+    return () => {
+      clearInterval(storeStatusInterval);
+    };
   }, []);
 
   const handleTabChange = (tab: Tab) => {
