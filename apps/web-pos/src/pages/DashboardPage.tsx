@@ -2,6 +2,7 @@ import { useOrderStore } from '../stores/orderStore';
 import { useAuthStore } from '../stores/authStore';
 import { OrderCard } from '../components/OrderCard';
 import { MenuPage } from './MenuPage';
+import { SettingsPage } from './SettingsPage';
 import { 
   ShoppingBag, 
   UtensilsCrossed, 
@@ -314,12 +315,7 @@ export function DashboardPage() {
 
           {activeTab === 'menu' && <MenuPage />}
 
-          {activeTab === 'settings' && (
-            <div>
-              <h2 className="text-2xl font-bold text-slate-800 mb-4">ตั้งค่า</h2>
-              <p className="text-slate-500">Coming soon...</p>
-            </div>
-          )}
+          {activeTab === 'settings' && <SettingsPage />}
         </div>
       </main>
     </div>
