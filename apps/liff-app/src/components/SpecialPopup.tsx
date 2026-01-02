@@ -51,28 +51,35 @@ export function SpecialPopup({
       />
       
       {/* Popup */}
-      <div className="relative bg-gradient-to-br from-amber-50 to-orange-100 rounded-3xl shadow-2xl p-6 max-w-sm w-full transform animate-bounce-in">
+      <div 
+        className="relative bg-gradient-to-br from-amber-50 to-orange-100 rounded-3xl shadow-2xl p-6 max-w-sm w-full transform animate-bounce-in cursor-pointer"
+        onClick={() => {
+          setIsVisible(false);
+          onClose?.();
+        }}
+      >
         {/* Close button */}
         <button
-          onClick={() => {
+          onClick={(e) => {
+            e.stopPropagation();
             setIsVisible(false);
             onClose?.();
           }}
-          className="absolute top-3 right-3 p-2 text-slate-400 hover:text-slate-600 transition-colors"
+          className="absolute top-3 right-3 p-2 text-slate-400 hover:text-slate-600 transition-colors z-10"
         >
           <X size={20} />
         </button>
 
         {/* Sparkles decoration */}
-        <div className="absolute -top-3 -left-3">
+        <div className="absolute -top-3 -left-3 pointer-events-none">
           <Sparkles className="text-amber-400 animate-pulse" size={24} />
         </div>
-        <div className="absolute -top-3 -right-3">
+        <div className="absolute -top-3 -right-3 pointer-events-none">
           <Sparkles className="text-orange-400 animate-pulse" size={24} />
         </div>
 
         {/* Content */}
-        <div className="text-center">
+        <div className="text-center pointer-events-none">
           {/* Emoji */}
           <div className="text-6xl mb-4 animate-bounce">
             {emoji}
@@ -96,7 +103,7 @@ export function SpecialPopup({
         </div>
 
         {/* Progress bar */}
-        <div className="mt-6 h-1 bg-slate-200 rounded-full overflow-hidden">
+        <div className="mt-6 h-1 bg-slate-200 rounded-full overflow-hidden pointer-events-none">
           <div 
             className="h-full bg-gradient-to-r from-amber-400 to-orange-500 transition-all duration-100"
             style={{ width: `${progress}%` }}
@@ -104,8 +111,8 @@ export function SpecialPopup({
         </div>
 
         {/* Tap to dismiss hint */}
-        <p className="text-center text-xs text-slate-400 mt-3">
-          แตะเพื่อปิด
+        <p className="text-center text-xs text-slate-400 mt-3 pointer-events-none">
+          แตะที่ไหนก็ได้เพื่อปิด
         </p>
       </div>
     </div>
