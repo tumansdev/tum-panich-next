@@ -121,37 +121,37 @@ ${itemsText}
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pt-3 border-t border-slate-100 gap-3">
         <div className="flex items-center gap-2">
           <span className="text-xs text-slate-500">{DELIVERY_LABELS[order.deliveryType]}</span>
           <span className="font-bold text-brand-700">฿{order.totalAmount}</span>
         </div>
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
           {/* Print Button */}
           <button
             onClick={(e) => {
               e.stopPropagation();
               printKitchenOrder(order);
             }}
-            className="flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-xs font-medium hover:bg-blue-200 transition-all"
+            className="flex items-center justify-center gap-1 px-3 py-2 min-h-[44px] bg-blue-100 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-200 transition-all flex-1 sm:flex-none"
             title="พิมพ์ใบสั่งอาหาร"
           >
-            <Printer size={14} />
-            พิมพ์
+            <Printer size={16} />
+            <span className="sm:inline">พิมพ์</span>
           </button>
 
           {/* Copy Button */}
           {order.deliveryType !== 'pickup' && (
             <button
               onClick={handleCopy}
-              className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              className={`flex items-center justify-center gap-1 px-3 py-2 min-h-[44px] rounded-lg text-sm font-medium transition-all flex-1 sm:flex-none ${
                 copied 
                   ? 'bg-green-100 text-green-700' 
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
-              {copied ? <Check size={14} /> : <Copy size={14} />}
+              {copied ? <Check size={16} /> : <Copy size={16} />}
               {copied ? 'Copied!' : 'Copy'}
             </button>
           )}
@@ -163,10 +163,10 @@ ${itemsText}
                 e.stopPropagation();
                 onUpdateStatus(nextStatus);
               }}
-              className="flex items-center gap-1 px-3 py-1.5 bg-brand-600 text-white rounded-lg text-xs font-medium hover:bg-brand-700 transition-colors"
+              className="flex items-center justify-center gap-1 px-4 py-2 min-h-[44px] bg-brand-600 text-white rounded-lg text-sm font-medium hover:bg-brand-700 transition-colors flex-1 sm:flex-none"
             >
               {STATUS_CONFIG[nextStatus].label}
-              <ChevronRight size={14} />
+              <ChevronRight size={16} />
             </button>
           )}
         </div>
