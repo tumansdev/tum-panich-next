@@ -17,6 +17,8 @@ import { Loading } from './components/ui/Loading';
 import { Dialog } from './components/ui/Dialog';
 import { storeAPI, StoreStatusResponse, SpecialMenuResponse } from './lib/api';
 import { SpecialPopup } from './components/SpecialPopup';
+import { PDPAConsent } from './components/PDPAConsent';
+import { PrivacyPolicy } from './pages/PrivacyPolicy';
 import { X } from 'lucide-react';
 
 type Tab = 'home' | 'orders' | 'cart' | 'story' | 'profile';
@@ -50,6 +52,17 @@ function App() {
   // Special Menu Popup
   const [specialMenu, setSpecialMenu] = useState<SpecialMenuResponse | null>(null);
   const [showSpecialPopup, setShowSpecialPopup] = useState(false);
+
+  // PDPA Consent
+  const [pdpaConsent, setPdpaConsent] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('pdpa_consent');
+      return saved ? JSON.parse(saved).accepted === true : false;
+    } catch {
+      return false;
+    }
+  });
+  const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
 
   // Initialize LIFF
   useEffect(() => {
@@ -158,10 +171,42 @@ function App() {
 
   const headerConfig = getHeaderConfig();
 
+  // PDPA Consent Handler
+  const handlePDPAAccept = () => {
+    try {
+      localStorage.setItem('pdpa_consent', JSON.stringify({
+        accepted: true,
+        timestamp: new Date().toISOString()
+      }));
+    } catch {
+      // localStorage may not be available
+    }
+    setPdpaConsent(true);
+    setShowPrivacyPolicy(false);
+  };
+
   // Loading screen
   if (!liffReady) {
     return (
       <Loading />
+    );
+  }
+
+  // PDPA Consent Screen - Must accept before using app
+  if (!pdpaConsent) {
+    if (showPrivacyPolicy) {
+      return (
+        <PrivacyPolicy 
+          onBack={() => setShowPrivacyPolicy(false)}
+          onAccept={handlePDPAAccept}
+        />
+      );
+    }
+    return (
+      <PDPAConsent 
+        onAccept={handlePDPAAccept}
+        onViewPolicy={() => setShowPrivacyPolicy(true)}
+      />
     );
   }
 
