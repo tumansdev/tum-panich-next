@@ -1,7 +1,7 @@
 import { ArrowLeft, User, Clock } from 'lucide-react';
 import { LiffProfile } from '../types';
 
-type View = 'main' | 'checkout' | 'order-status' | 'menu';
+type View = 'main' | 'checkout' | 'order-status' | 'menu' | 'favorites';
 
 interface StoreStatusData {
   isOpen: boolean;
@@ -25,6 +25,7 @@ const viewTitles: Record<View, { title: string; subtitle?: string }> = {
   checkout: { title: 'ชำระเงิน', subtitle: 'ยืนยันคำสั่งซื้อ' },
   'order-status': { title: 'สถานะออเดอร์', subtitle: 'ติดตามคำสั่งซื้อ' },
   menu: { title: 'เมนูทั้งหมด', subtitle: 'เลือกเมนูโปรด' },
+  favorites: { title: 'รายการโปรด', subtitle: 'เมนูที่คุณชอบ' },
 };
 
 export function Header({ title, subtitle, view, onBack, profile, activeTab, storeStatus }: HeaderProps) {

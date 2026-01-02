@@ -2,13 +2,16 @@ import { useState } from 'react';
 import { Phone, MapPin, Edit2, Check, User, MessageCircle, HelpCircle, Heart, ChevronRight } from 'lucide-react';
 import { LiffProfile } from '../types';
 import { useCustomerStore } from '../stores/customerStore';
+import { useFavoritesStore } from '../stores/favoritesStore';
 
 interface ProfilePageProps {
   profile: LiffProfile | null;
+  onShowFavorites?: () => void;
 }
 
-export function ProfilePage({ profile }: ProfilePageProps) {
+export function ProfilePage({ profile, onShowFavorites }: ProfilePageProps) {
   const { info, updateInfo } = useCustomerStore();
+  const favoritesCount = useFavoritesStore((s) => s.favorites.length);
   const [isEditingName, setIsEditingName] = useState(false);
   const [isEditingPhone, setIsEditingPhone] = useState(false);
   const [isEditingAddress, setIsEditingAddress] = useState(false);
@@ -80,11 +83,16 @@ export function ProfilePage({ profile }: ProfilePageProps) {
       {/* ===== QUICK ACTIONS ===== */}
       <div className="grid grid-cols-3 gap-3">
         <button 
-          onClick={() => alert('ฟีเจอร์รายการโปรดจะเปิดให้บริการเร็วๆ นี้!')}
-          className="flex flex-col items-center justify-center p-4 bg-white rounded-2xl shadow-sm border border-slate-100 hover:border-brand-200 hover:bg-brand-50 transition-all active:scale-95"
+          onClick={() => onShowFavorites?.()}
+          className="flex flex-col items-center justify-center p-4 bg-white rounded-2xl shadow-sm border border-slate-100 hover:border-brand-200 hover:bg-brand-50 transition-all active:scale-95 relative"
         >
+          {favoritesCount > 0 && (
+            <span className="absolute top-2 right-2 w-5 h-5 bg-brand-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+              {favoritesCount}
+            </span>
+          )}
           <div className="w-10 h-10 bg-brand-50 rounded-xl flex items-center justify-center mb-2">
-            <Heart size={20} className="text-brand-600" />
+            <Heart size={20} className="text-brand-600" fill={favoritesCount > 0 ? 'currentColor' : 'none'} />
           </div>
           <span className="text-xs font-medium text-slate-700">รายการโปรด</span>
         </button>

@@ -1,6 +1,7 @@
-import { Plus } from 'lucide-react';
+import { Plus, Heart } from 'lucide-react';
 import { Product } from '../types';
 import { useCartStore } from '../stores/cartStore';
+import { useFavoritesStore } from '../stores/favoritesStore';
 
 interface ProductCardProps {
   product: Product;
@@ -9,6 +10,8 @@ interface ProductCardProps {
 
 export function ProductCard({ product, onSelect }: ProductCardProps) {
   const addItem = useCartStore((state) => state.addItem);
+  const { isFavorite, toggleFavorite } = useFavoritesStore();
+  const isProductFavorite = isFavorite(product.id);
 
   const handleAdd = () => {
     if (product.options && product.options.length > 0) {
@@ -16,7 +19,7 @@ export function ProductCard({ product, onSelect }: ProductCardProps) {
       onSelect?.(product);
     } else {
       // ถ้าไม่มี options เพิ่มลงตะกร้าเลย
-      addItem(product, 1);
+      addItem(product, {});
     }
   };
 
@@ -47,6 +50,21 @@ export function ProductCard({ product, onSelect }: ProductCardProps) {
             ฟรี!
           </div>
         )}
+
+        {/* Favorite Button */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleFavorite(product);
+          }}
+          className={`absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+            isProductFavorite 
+              ? 'bg-brand-500 text-white shadow-lg' 
+              : 'bg-white/80 backdrop-blur-sm text-slate-400 hover:text-brand-500'
+          }`}
+        >
+          <Heart size={16} fill={isProductFavorite ? 'currentColor' : 'none'} />
+        </button>
 
         {/* Quick Add Button - Floating */}
         <button

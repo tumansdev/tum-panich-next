@@ -19,10 +19,11 @@ import { storeAPI, StoreStatusResponse, SpecialMenuResponse } from './lib/api';
 import { SpecialPopup } from './components/SpecialPopup';
 import { PDPAConsent } from './components/PDPAConsent';
 import { PrivacyPolicy } from './pages/PrivacyPolicy';
+import { FavoritesPage } from './pages/FavoritesPage';
 import { X } from 'lucide-react';
 
 type Tab = 'home' | 'orders' | 'cart' | 'story' | 'profile';
-type View = 'main' | 'checkout' | 'order-status' | 'menu';
+type View = 'main' | 'checkout' | 'order-status' | 'menu' | 'favorites';
 
 // Tab titles for Header
 const tabTitles: Record<Tab, { title: string; subtitle: string }> = {
@@ -245,13 +246,23 @@ function App() {
               <OurStoryPage />
             )}
             {activeTab === 'profile' && (
-              <ProfilePage profile={profile} />
+              <ProfilePage 
+                profile={profile} 
+                onShowFavorites={() => setView('favorites')}
+              />
             )}
           </>
         )}
 
         {view === 'menu' && (
           <MenuPage onSelectProduct={handleSelectProduct} />
+        )}
+
+        {view === 'favorites' && (
+          <FavoritesPage 
+            onBack={() => setView('main')}
+            onSelectProduct={handleSelectProduct}
+          />
         )}
 
         {view === 'checkout' && (
