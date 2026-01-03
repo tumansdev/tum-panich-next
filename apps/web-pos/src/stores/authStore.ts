@@ -22,6 +22,7 @@ interface AuthState {
   login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
   checkAuth: () => Promise<boolean>;
+  refreshToken: () => Promise<boolean>;
   clearError: () => void;
 }
 
@@ -105,6 +106,40 @@ export const useAuthStore = create<AuthState>()(
       },
 
       clearError: () => set({ error: null }),
+
+      // 🔄 Refresh token before expiry
+      refreshToken: async (): Promise<boolean> => {
+        const token = get().token;
+        if (!token) return false;
+
+        try {
+          const response = await fetch(`${getApiUrl()}/api/auth/refresh`, {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}` 
+            },
+          });
+
+          if (!response.ok) {
+            // Token invalid, logout
+            get().logout();
+            return false;
+          }
+
+          const data = await response.json();
+          set({
+            token: data.token,
+            user: data.user,
+            isAuthenticated: true,
+          });
+          console.log('🔄 Token refreshed successfully');
+          return true;
+        } catch {
+          console.error('Token refresh failed');
+          return false;
+        }
+      },
     }),
     {
       name: 'tum-admin-auth',

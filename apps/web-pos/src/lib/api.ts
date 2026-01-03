@@ -70,10 +70,11 @@ export function mapOrderFromAPI(o: APIOrder): Order {
   };
 }
 
-// Fetch wrapper with error handling and JWT auth
+// Fetch wrapper with error handling, JWT auth, and auto-refresh
 async function fetchAPI<T>(
   endpoint: string,
-  options?: RequestInit
+  options?: RequestInit,
+  retryOnUnauth = true
 ): Promise<T> {
   const token = getAuthToken();
   
@@ -85,6 +86,24 @@ async function fetchAPI<T>(
       ...options?.headers,
     },
   });
+
+  // Handle 401 - try to refresh token once
+  if (response.status === 401 && retryOnUnauth && token) {
+    console.log('🔄 Token expired, attempting refresh...');
+    
+    // Import dynamically to avoid circular dependency
+    const { useAuthStore } = await import('../stores/authStore');
+    const refreshed = await useAuthStore.getState().refreshToken();
+    
+    if (refreshed) {
+      // Retry the original request with new token
+      return fetchAPI<T>(endpoint, options, false);
+    } else {
+      // Refresh failed, redirect to login
+      window.location.href = '/login';
+      throw new Error('Session หมดอายุ กรุณา Login ใหม่');
+    }
+  }
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ error: 'Network error' }));

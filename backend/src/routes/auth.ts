@@ -136,4 +136,50 @@ router.post('/change-password', authMiddleware, async (req: AuthRequest, res: Re
   }
 });
 
+/**
+ * POST /api/auth/refresh - Refresh JWT token
+ * Returns a new token if current token is valid
+ */
+router.post('/refresh', authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const user = req.user;
+    
+    if (!user) {
+      return res.status(401).json({ error: 'ไม่พบข้อมูลผู้ใช้' });
+    }
+
+    // Verify user still exists and is active
+    const result = await pool.query(
+      'SELECT id, username, display_name, role FROM admin_users WHERE id = $1 AND active = true',
+      [user.id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(401).json({ error: 'ผู้ใช้ไม่ถูกต้อง' });
+    }
+
+    const dbUser = result.rows[0];
+
+    // Generate new token
+    const newToken = generateToken({
+      id: dbUser.id,
+      username: dbUser.username,
+      role: dbUser.role,
+    });
+
+    res.json({
+      token: newToken,
+      user: {
+        id: dbUser.id,
+        username: dbUser.username,
+        displayName: dbUser.display_name,
+        role: dbUser.role,
+      },
+    });
+  } catch (error) {
+    console.error('Refresh token error:', error);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาดในการรีเฟรช Token' });
+  }
+});
+
 export default router;
