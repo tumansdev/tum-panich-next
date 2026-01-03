@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
-import { Plus, Edit2, Trash2, Image, Save, X, Search, Upload, RefreshCw, ToggleLeft, ToggleRight, FolderPlus } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Edit2, Trash2, Image, Save, X, Search, RefreshCw, ToggleLeft, ToggleRight, FolderPlus } from 'lucide-react';
 import { MenuItem } from '../types';
 import { menuAPI, categoriesAPI } from '../lib/api';
+import { useToast } from '../components/Toast';
 
 interface Category {
   id: string;
@@ -10,6 +11,7 @@ interface Category {
 }
 
 export function MenuPage() {
+  const { showToast } = useToast();
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -145,10 +147,9 @@ export function MenuPage() {
     }
   };
 
-  // Save (create or update)
   const handleSave = async () => {
     if (!formData.name.trim()) {
-      alert('กรุณากรอกชื่อเมนู');
+      showToast('กรุณากรอกชื่อเมนู', 'warning');
       return;
     }
 
@@ -209,7 +210,7 @@ export function MenuPage() {
       handleCancel();
     } catch (error) {
       console.error('Failed to save:', error);
-      alert('บันทึกไม่สำเร็จ');
+      showToast('บันทึกไม่สำเร็จ', 'error');
     } finally {
       setUploading(false);
     }
@@ -226,7 +227,7 @@ export function MenuPage() {
   // Add category
   const handleAddCategory = async () => {
     if (!newCategory.id.trim() || !newCategory.name.trim()) {
-      alert('กรุณากรอกรหัสและชื่อหมวดหมู่');
+      showToast('กรุณากรอกรหัสและชื่อหมวดหมู่', 'warning');
       return;
     }
     
@@ -235,10 +236,10 @@ export function MenuPage() {
       setCategories((prev) => [...prev, created]);
       setNewCategory({ id: '', name: '', icon: '📦' });
       setShowCategoryModal(false);
-      alert('เพิ่มหมวดหมู่สำเร็จ!');
+      showToast('เพิ่มหมวดหมู่สำเร็จ!', 'success');
     } catch (error) {
       console.error('Failed to add category:', error);
-      alert('เพิ่มหมวดหมู่ไม่สำเร็จ');
+      showToast('เพิ่มหมวดหมู่ไม่สำเร็จ', 'error');
     }
   };
 
