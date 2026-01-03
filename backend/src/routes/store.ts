@@ -1,7 +1,15 @@
 import { Router, Request, Response } from 'express';
 import pool from '../db';
+import { Server } from 'socket.io';
 
 const router = Router();
+
+// Socket.IO instance (injected from index.ts)
+let io: Server | null = null;
+
+export const setSocketIO = (socketIO: Server) => {
+  io = socketIO;
+};
 
 // Ensure table exists
 const initTable = async () => {
@@ -88,6 +96,13 @@ router.post('/status', async (req: Request, res: Response) => {
        ON CONFLICT (key) DO UPDATE SET value = $1, updated_at = NOW()`,
       [JSON.stringify(value)]
     );
+    
+    // 📡 Emit real-time update to all customers
+    if (io) {
+      io.to('store_status').emit('store_status_changed', value);
+      console.log('📡 Store status changed:', isOpen ? 'OPEN' : 'CLOSED');
+    }
+    
     res.json({ success: true, ...value });
   } catch (err) {
     res.status(500).json({ error: 'Failed to update store status' });

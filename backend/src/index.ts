@@ -20,6 +20,7 @@ import storeRoutes from './routes/store';
 import webhookRoutes from './routes/webhook';
 import authRoutes from './routes/auth';
 import pool from './db';
+import { setSocketIO as setStoreSocketIO } from './routes/store';
 
 const app = express();
 const httpServer = createServer(app);
@@ -81,6 +82,8 @@ const io = new Server(httpServer, {
 
 // Pass io instance to orders route for real-time events
 setIO(io);
+// Pass io instance to store route for real-time store status
+setStoreSocketIO(io);
 
 const port = process.env.PORT || 3000;
 
@@ -165,6 +168,11 @@ io.on('connection', (socket: Socket) => {
   // Admin room for all order updates
   socket.on('join_admin', () => {
     socket.join('admin');
+  });
+
+  // 🏪 Store status room - customers join to receive realtime updates
+  socket.on('join_store_status', () => {
+    socket.join('store_status');
   });
 
   socket.on('disconnect', () => {

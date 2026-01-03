@@ -20,6 +20,7 @@ import { SpecialPopup } from './components/SpecialPopup';
 import { PDPAConsent } from './components/PDPAConsent';
 import { PrivacyPolicy } from './pages/PrivacyPolicy';
 import { FavoritesPage } from './pages/FavoritesPage';
+import { connectSocket, disconnectSocket, joinStoreStatusRoom, onStoreStatusChanged } from './lib/socket';
 import { X } from 'lucide-react';
 
 type Tab = 'home' | 'orders' | 'cart' | 'story' | 'profile';
@@ -92,8 +93,15 @@ function App() {
     
     fetchStoreStatus();
     
-    // ⏱️ Realtime polling every 30 seconds
-    const storeStatusInterval = setInterval(fetchStoreStatus, 30000);
+    // 🔌 Real-time WebSocket for store status
+    connectSocket();
+    joinStoreStatusRoom();
+    
+    const unsubscribeStoreStatus = onStoreStatusChanged((status) => {
+      console.log('📡 Store status changed via WebSocket:', status.isOpen ? 'OPEN' : 'CLOSED');
+      // Update with fresh full status from API to get all fields
+      fetchStoreStatus();
+    });
     
     // Check special menu (only once)
     storeAPI.getSpecialMenu().then(menu => {
@@ -105,7 +113,8 @@ function App() {
     
     // Cleanup
     return () => {
-      clearInterval(storeStatusInterval);
+      unsubscribeStoreStatus();
+      disconnectSocket();
     };
   }, []);
 
